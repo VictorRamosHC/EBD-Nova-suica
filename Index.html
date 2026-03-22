@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="EBD Nova Suíça">
+    <link rel="manifest" id="pwa-manifest">
+    <title>EBD Digital · Nova Suíça</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5; --primary-light: #818cf8; --primary-dim: rgba(79,70,229,0.1);
+            --success: #059669; --success-dim: rgba(5,150,105,0.12);
+            --danger: #dc2626; --danger-dim: rgba(220,38,38,0.1);
+            --warning: #d97706; --warning-dim: rgba(217,119,6,0.12);
+            --bg: #f8f7ff; --surface: #ffffff; --surface2: #f0effe;
+            --text: #1e1b4b; --text-muted: #6b7280;
+            --border: rgba(79,70,229,0.12);
+            --shadow: 0 2px 12px rgba(79,70,229,0.08);
+            --header-bg: rgba(248,247,255,0.93);
+            --radius: 16px;
+        }
+        [data-theme="dark"] {
+            --bg: #0d0b1e; --surface: #1a1730; --surface2: #221e3a;
+            --text: #ede9fe; --text-muted: #7c74a8;
+            --border: rgba(129,140,248,0.15);
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --header-bg: rgba(26,23,48,0.96);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 0 12px 110px; transition: background 0.3s, color 0.3s; min-height: 100vh; }
+
+        /* HEADER */
+        header { position: sticky; top: 0; z-index: 100; background: var(--header-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 12px 16px; margin: 0 -12px 14px; border-bottom: 1px solid var(--border); }
+        .header-row { display: flex; align-items: center; gap: 10px; }
+        .logo-wrap { width: 50px; height: 50px; flex-shrink: 0; }
+        #miniChart { width: 50px !important; height: 50px !important; }
+        .header-info { flex: 1; min-width: 0; }
+        .church-name { font-family: 'Sora', sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .date-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+        .date-text { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+        .date-badge { background: var(--primary-dim); color: var(--primary); border: 1px solid var(--border); padding: 2px 9px; border-radius: 20px; font-size: 0.62rem; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .header-actions { display: flex; gap: 6px; }
+        .icon-btn { background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow); }
+
+        /* STATS */
+        .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .stat-pill { background: var(--surface); border-radius: 12px; padding: 9px 6px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .stat-num { font-family: 'Sora', sans-serif; font-size: 1.35rem; font-weight: 800; line-height: 1; }
+        .stat-lbl { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.8px; margin-top: 2px; text-transform: uppercase; }
+        .stat-pill.s-p .stat-num { color: var(--success); } .stat-pill.s-p .stat-lbl { color: var(--success); }
+        .stat-pill.s-a .stat-num { color: var(--danger); } .stat-pill.s-a .stat-lbl { color: var(--danger); }
+        .stat-pill.s-v .stat-num { color: var(--warning); } .stat-pill.s-v .stat-lbl { color: var(--warning); }
+
+        /* NAV */
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 12px; background: var(--surface); padding: 5px; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .nav-btn { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.66rem; cursor: pointer; background: none; color: var(--text-muted); transition: all 0.2s; }
+        .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 3px 10px rgba(79,70,229,0.35); }
+
+        /* TOOLBAR */
+        .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tool-btn { flex: 1; padding: 9px 8px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.68rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: var(--shadow); transition: all 0.15s; }
+        .tool-btn:active { transform: scale(0.97); }
+        .tool-btn.success-btn { border-color: rgba(5,150,105,0.3); color: var(--success); background: var(--success-dim); }
+
+        /* SEARCH */
+        .search-wrap { position: relative; margin-bottom: 12px; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+        .search-box { width: 100%; padding: 12px 14px 12px 40px; border-radius: 13px; border: 1.5px solid var(--border); font-size: 15px; background: var(--surface); color: var(--text); outline: none; font-family: 'DM Sans', sans-serif; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: var(--shadow); }
+        .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
+        .search-box::placeholder { color: var(--text-muted); }
+
+        /* PROGRESS */
+        .progress-wrap { margin-bottom: 12px; }
+        .progress-bar-bg { background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--success), #34d399); transition: width 0.4s ease; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.63rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        /* ALUNO CARD */
+        .aluno-card { background: var(--surface); border-radius: var(--radius); padding: 13px 13px 11px; margin-bottom: 8px; box-shadow: var(--shadow); border: 1.5px solid var(--border); transition: border-color 0.2s; position: relative; overflow: hidden; }
+        .aluno-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--border); transition: background 0.2s; }
+        .aluno-card.presente::before { background: var(--success); }
+        .aluno-card.ausente::before { background: var(--danger); }
+        .aluno-card.visitante-cor::before { background: var(--warning); }
+        .aluno-card.presente { border-color: rgba(5,150,105,0.2); background: linear-gradient(135deg, var(--surface) 0%, rgba(5,150,105,0.03) 100%); }
+        .aluno-card.ausente { border-color: rgba(220,38,38,0.18); }
+        .aluno-card.visitante-cor { border-color: rgba(217,119,6,0.2); }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; margin-left: 10px; }
+        .card-name { font-family: 'Sora', sans-serif; font-size: 0.84rem; font-weight: 700; line-height: 1.3; }
+        .card-sub { font-size: 0.68rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+        .oferta-btn { background: var(--surface2); border: 1.5px solid var(--border); padding: 5px 9px; border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.2s; flex-shrink: 0; }
+        .oferta-btn.ativo { background: var(--warning-dim); border-color: var(--warning); }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 5px; margin-left: 10px; }
+        .btn { border: none; padding: 9px 4px; border-radius: 10px; font-family: 'Sora', sans-serif; font-weight: 700; cursor: pointer; font-size: 0.74rem; background: var(--surface2); color: var(--text-muted); border: 1.5px solid transparent; transition: all 0.15s; }
+        .btn-p.active { background: var(--success-dim); color: var(--success); border-color: var(--success); }
+        .btn-a.active { background: var(--danger-dim); color: var(--danger); border-color: var(--danger); }
+        .btn-v.active { background: var(--warning-dim); color: var(--warning); border-color: var(--warning); }
+        .counter-box { display: flex; align-items: center; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 0 6px; border: 1.5px solid var(--border); min-width: 76px; justify-content: space-between; }
+        .counter-btn { background: none; border: none; cursor: pointer; font-size: 1rem; font-weight: 800; color: var(--primary); padding: 6px 2px; line-height: 1; }
+        .counter-val { font-family: 'Sora', sans-serif; font-size: 0.75rem; font-weight: 700; }
+
+        /* FECHAMENTO */
+        .fechamento { background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%); color: white; padding: 20px; border-radius: 20px; margin-top: 18px; box-shadow: 0 8px 30px rgba(30,27,75,0.35); }
+        .fechamento-title { font-family: 'Sora', sans-serif; font-size: 0.85rem; font-weight: 800; color: #fbbf24; text-align: center; letter-spacing: 1px; margin-bottom: 16px; text-transform: uppercase; }
+        .fech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .fech-label { font-size: 0.6rem; font-weight: 800; color: #a5b4fc; display: block; margin-bottom: 5px; letter-spacing: 0.8px; text-transform: uppercase; }
+        .custom-select { width: 100%; padding: 11px 13px; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; border: 1.5px solid rgba(165,180,252,0.2); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 0.78rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
+        .custom-select:hover { border-color: rgba(165,180,252,0.5); }
+        .fechamento input, .fechamento textarea { width: 100%; padding: 11px 13px; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; border: 1.5px solid rgba(165,180,252,0.2); outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; }
+        .fechamento textarea { resize: none; margin-bottom: 4px; }
+        .fechamento input::placeholder, .fechamento textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .fechamento input:focus, .fechamento textarea:focus { border-color: #818cf8; }
+        .btn-enviar { width: 100%; padding: 15px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 0.9rem; border-radius: 14px; cursor: pointer; margin-top: 13px; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(5,150,105,0.4); transition: transform 0.1s; }
+        .btn-enviar:active { transform: scale(0.98); }
+        .btn-limpar { width: 100%; padding: 10px; border: 1.5px dashed rgba(220,38,38,0.45); background: rgba(220,38,38,0.06); color: #f87171; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.7rem; border-radius: 12px; cursor: pointer; margin-top: 8px; }
+
+        /* RANKING */
+        .rank-card { background: var(--surface); border-radius: var(--radius); padding: 13px; margin-bottom: 8px; display: flex; align-items: center; box-shadow: var(--shadow); border: 1.5px solid var(--border); }
+        .rank-pos { font-family: 'Sora', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--primary-light); min-width: 30px; }
+        .rank-pos.gold { color: #f59e0b; } .rank-pos.silver { color: #9ca3af; } .rank-pos.bronze { color: #cd7c42; }
+        .rank-info { flex: 1; padding: 0 10px; }
+        .rank-name { font-family: 'Sora', sans-serif; font-size: 0.84rem; font-weight: 700; }
+        .rank-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+        .rank-pts { background: var(--primary-dim); color: var(--primary); border: 1.5px solid var(--border); padding: 5px 11px; border-radius: 10px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 0.82rem; }
+        .rank-loading { text-align: center; padding: 30px; font-weight: 700; color: var(--primary); }
+
+        /* HISTÓRICO */
+        .hist-card { background: var(--surface); border-radius: 14px; padding: 14px; margin-bottom: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow); cursor: pointer; transition: border-color 0.15s; }
+        .hist-card:hover { border-color: var(--primary); }
+        .hist-date { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 0.88rem; color: var(--primary); margin-bottom: 8px; }
+        .hist-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
+        .hist-badge { font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+        .hist-badge.p { background: var(--success-dim); color: var(--success); }
+        .hist-badge.a { background: var(--danger-dim); color: var(--danger); }
+        .hist-badge.v { background: var(--warning-dim); color: var(--warning); }
+        .hist-prof { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* FAB */
+        .fab-admin { position: fixed; bottom: 24px; right: 20px; background: linear-gradient(135deg, #312e81, #4f46e5); color: white; width: 52px; height: 52px; border-radius: 50%; border: none; font-size: 20px; z-index: 999; cursor: pointer; box-shadow: 0 4px 16px rgba(79,70,229,0.4); transition: transform 0.15s; }
+        .fab-admin:active { transform: scale(0.92); }
+
+        /* MODAL */
+        #modalOverlay { display: none; position: fixed; inset: 0; background: rgba(13,11,30,0.8); z-index: 1000; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); padding: 0; }
+        .modal-box { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 22px 18px; max-height: 90vh; overflow-y: auto; color: var(--text); animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1); border-top: 1px solid var(--border); }
+        @keyframes slideUp { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
+        .modal-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 800; margin-bottom: 14px; }
+        .admin-card-item { background: var(--surface2); border-radius: 12px; padding: 10px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        .admin-actions { display: flex; gap: 6px; }
+        .admin-btn { border: none; padding: 7px 10px; border-radius: 8px; color: white; cursor: pointer; font-size: 13px; }
+        .form-input { width: 100%; padding: 12px 13px; margin-bottom: 8px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
+        .btn-primary { flex: 2; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-family: 'Sora', sans-serif; font-weight: 700; cursor: pointer; }
+        .btn-secondary { flex: 1; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .btn-cancel-text { width: 100%; background: none; border: none; color: var(--text-muted); padding: 14px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .option-item { padding: 13px; border-radius: 12px; background: var(--surface2); border: 1.5px solid var(--border); margin-bottom: 8px; font-family: 'Sora', sans-serif; font-weight: 700; text-align: center; cursor: pointer; font-size: 0.9rem; transition: background 0.15s, border-color 0.15s; }
+        .option-item:hover { border-color: var(--primary); background: var(--primary-dim); }
+        .confirm-icon { font-size: 3rem; text-align: center; margin-bottom: 8px; }
+        .confirm-desc { color: var(--text-muted); text-align: center; margin-bottom: 20px; font-size: 0.88rem; }
+        .btn-confirm { width: 100%; padding: 15px; border-radius: 14px; border: none; color: white; font-family: 'Sora', sans-serif; font-weight: 800; cursor: pointer; font-size: 0.95rem; }
+
+        /* MODO RÁPIDO */
+        #modoRapidoOverlay { display: none; position: fixed; inset: 0; z-index: 2000; background: var(--bg); flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        .rapido-progress { font-family: 'Sora', sans-serif; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-bottom: 16px; letter-spacing: 0.5px; }
+        .rapido-nome { font-family: 'Sora', sans-serif; font-size: 1.55rem; font-weight: 800; text-align: center; margin-bottom: 5px; line-height: 1.25; }
+        .rapido-apelido { color: var(--text-muted); font-size: 0.88rem; text-align: center; margin-bottom: 32px; }
+        .rapido-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+        .rapido-btn { padding: 20px; border: none; border-radius: 18px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: transform 0.1s; letter-spacing: 0.5px; }
+        .rapido-btn:active { transform: scale(0.97); }
+        .rapido-btn.p { background: linear-gradient(135deg, #059669, #10b981); color: white; box-shadow: 0 5px 18px rgba(5,150,105,0.4); }
+        .rapido-btn.a { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; box-shadow: 0 5px 18px rgba(220,38,38,0.35); }
+        .rapido-btn.v { background: linear-gradient(135deg, #d97706, #f59e0b); color: white; box-shadow: 0 5px 18px rgba(217,119,6,0.35); }
+        .rapido-close { position: absolute; top: 20px; right: 20px; background: var(--surface2); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .rapido-nav { display: flex; gap: 12px; margin-top: 18px; }
+        .rapido-nav-btn { background: var(--surface); border: 1.5px solid var(--border); padding: 10px 20px; border-radius: 12px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.78rem; cursor: pointer; color: var(--text); }
+        .rapido-concluido { font-family: 'Sora', sans-serif; font-size: 1.2rem; font-weight: 800; text-align: center; color: var(--success); }
+
+        /* TOAST */
+        .toast-success { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 13px 26px; border-radius: 50px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 0.85rem; z-index: 3000; box-shadow: 0 8px 25px rgba(5,150,105,0.45); display: none; letter-spacing: 0.5px; white-space: nowrap; }
+
+        /* EMPTY */
+        .empty-state { text-align: center; padding: 36px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 2.4rem; margin-bottom: 10px; }
+        .empty-state p { font-size: 0.84rem; }
+
+        /* PRINT */
+        @media print {
+            header, .nav-tabs, .toolbar, .search-wrap, .progress-wrap, .stats-bar,
+            .btn-group, .oferta-btn, .counter-box, .fechamento, .fab-admin,
+            #modalOverlay, #modoRapidoOverlay, .toast-success, .date-badge,
+            .icon-btn, .header-actions { display: none !important; }
+            body { padding: 0; background: white; color: black; }
+            .print-header { display: block !important; text-align: center; padding: 8px 0 14px; border-bottom: 2px solid #1e1b4b; margin-bottom: 14px; }
+            .print-header h2 { font-size: 1.1rem; font-family: 'Sora', sans-serif; color: #1e1b4b; margin-bottom: 3px; }
+            .print-header p { font-size: 0.78rem; color: #555; }
+            .aluno-card { border: 1px solid #ddd; border-radius: 6px; padding: 7px 10px; margin-bottom: 4px; page-break-inside: avoid; box-shadow: none; display: flex; justify-content: space-between; align-items: center; }
+            .aluno-card::before { display: none; }
+            .card-name { font-size: 0.82rem; }
+            .card-sub { font-size: 0.68rem; }
+            .print-status { display: inline-block !important; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; margin-left: 8px; }
+            .print-status.P { background: #d1fae5; color: #059669; }
+            .print-status.A { background: #fee2e2; color: #dc2626; }
+            .print-status.V { background: #fef3c7; color: #d97706; }
+        }
+        .print-header { display: none; }
+        .print-status { display: none; }
+    </style>
+</head>
+<body data-theme="light">
+
+<div id="toast" class="toast-success"></div>
+
+<!-- MODO RÁPIDO -->
+<div id="modoRapidoOverlay">
+    <button class="rapido-close" onclick="fecharModoRapido()">✕</button>
+    <div class="rapido-progress" id="rapidoProgress"></div>
+    <div class="rapido-nome" id="rapidoNome"></div>
+    <div class="rapido-apelido" id="rapidoApelido"></div>
+    <div class="rapido-btns" id="rapidoBtns">
+        <button class="rapido-btn p" onclick="votarRapido('P')">✓ PRESENTE</button>
+        <button class="rapido-btn a" onclick="votarRapido('A')">✗ AUSENTE</button>
+        <button class="rapido-btn v" onclick="votarRapido('V')">👋 VISITANTE</button>
+    </div>
+    <div class="rapido-nav">
+        <button class="rapido-nav-btn" onclick="navegarRapido(-1)">← Anterior</button>
+        <button class="rapido-nav-btn" onclick="navegarRapido(1)">Próximo →</button>
+    </div>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHeader">
+    <h2>AD Belém · Nova Suíça — Chamada EBD</h2>
+    <p id="printMeta"></p>
+</div>
+
+<header>
+    <div class="header-row">
+        <div class="logo-wrap">
+            <canvas id="miniChart" width="50" height="50"></canvas>
+        </div>
+        <div class="header-info">
+            <div class="church-name">AD Belém · Nova Suíça</div>
+            <div class="date-row">
+                <span class="date-text" id="data-label">Carregando...</span>
+                <span class="date-badge" onclick="document.getElementById('dataManual').showPicker()">📅 TROCAR DATA</span>
+                <input type="date" id="dataManual" style="position:absolute; opacity:0; pointer-events:none;" onchange="mudarData(this.value)">
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="imprimirChamada()" title="Exportar PDF">🖨️</button>
+            <button class="icon-btn" onclick="toggleTheme()" title="Tema">🌓</button>
+        </div>
+    </div>
+</header>
+
+<div class="stats-bar">
+    <div class="stat-pill s-p"><div class="stat-num" id="cnt-p">0</div><div class="stat-lbl">Presentes</div></div>
+    <div class="stat-pill s-a"><div class="stat-num" id="cnt-a">0</div><div class="stat-lbl">Ausentes</div></div>
+    <div class="stat-pill s-v"><div class="stat-num" id="cnt-v">0</div><div class="stat-lbl">Visitantes</div></div>
+</div>
+
+<div class="nav-tabs">
+    <button id="btn-chamada" class="nav-btn active" onclick="switchTab('chamada')">📋 CHAMADA</button>
+    <button id="btn-ranking" class="nav-btn" onclick="switchTab('ranking')">🏆 RANKING</button>
+    <button id="btn-historico" class="nav-btn" onclick="switchTab('historico')">📅 HISTÓRICO</button>
+</div>
+
+<!-- TAB CHAMADA -->
+<div id="tab-chamada">
+    <div class="toolbar">
+        <button class="tool-btn success-btn" onclick="marcarTodosPresentes()">✓ Marcar todos presentes</button>
+        <button class="tool-btn" onclick="abrirModoRapido()">⚡ Modo rápido</button>
+    </div>
+    <div class="progress-wrap">
+        <div class="progress-label">
+            <span>Progresso da chamada</span>
+            <span id="progress-text">0 / 0 marcados</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="search-wrap">
+        <span class="search-icon">🔎</span>
+        <input type="text" id="busca" class="search-box" placeholder="Buscar irmão..." onkeyup="render()">
+    </div>
+    <div id="lista"></div>
+    <div class="fechamento">
+        <div class="fechamento-title">📊 Fechamento da Aula</div>
+        <div class="fech-grid">
+            <div><span class="fech-label">Prof. Adultos</span><div id="btnProfA" class="custom-select" onclick="abrirSeletor('profA')"><span>PASTOR JOSÉ</span> ▾</div></div>
+            <div><span class="fech-label">Prof. Jovens</span><div id="btnProfJ" class="custom-select" onclick="abrirSeletor('profJ')"><span>ADONIAS</span> ▾</div></div>
+        </div>
+        <div class="fech-grid">
+            <div><span class="fech-label">📖 Bíblias</span><input type="number" id="bib" value="0" min="0"></div>
+            <div><span class="fech-label">📒 Revistas</span><input type="number" id="rev" value="0" min="0"></div>
+        </div>
+        <span class="fech-label">👥 Visitantes externos</span>
+        <input type="number" id="qtdVisitantes" value="0" min="0" style="margin-bottom:8px;">
+        <textarea id="nomesVisitantes" rows="2" placeholder="Nomes dos visitantes novos..."></textarea>
+        <button class="btn-enviar" onclick="confirmarAcao('ENVIAR_RELATORIO')">🚀 ENVIAR PARA PLANILHA</button>
+        <button class="btn-limpar" onclick="confirmarAcao('LIMPAR_CHAMADA')">🧹 Limpar chamada local</button>
+    </div>
+</div>
+
+<!-- TAB RANKING -->
+<div id="tab-ranking" style="display:none;"><div id="ranking-lista"><div class="rank-loading">🏆 Carregando ranking...</div></div></div>
+
+<!-- TAB HISTÓRICO -->
+<div id="tab-historico" style="display:none;"><div id="historico-lista"></div></div>
+
+<button class="fab-admin" onclick="abrirAdmin()">⚙️</button>
+
+<!-- MODAIS -->
+<div id="modalOverlay" onclick="handleOverlayClick(event)">
+
+    <div id="modalPicker" class="modal-box" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="pickerTitle">Selecionar</div>
+        <div id="pickerOptions"></div>
+        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
+    </div>
+
+    <div id="modalAdmin" class="modal-box" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Gestão de Membros</div>
+        <div style="background:var(--surface2); padding:14px; border-radius:14px; margin-bottom:14px; border:1px solid var(--border);">
+            <input type="hidden" id="editIndex" value="-1">
+            <input type="text" id="membroNome" placeholder="NOME COMPLETO" class="form-input">
+            <input type="text" id="membroApelido" placeholder="Apelido / Cargo" class="form-input">
+            <div style="display:flex; gap:8px;">
+                <button id="btnSalvarMembro" class="btn-primary" onclick="salvarMembro()">SALVAR</button>
+                <button id="btnCancelaEdit" class="btn-secondary" onclick="limparFormAdmin()" style="display:none;">✕</button>
+            </div>
+        </div>
+        <div id="listaAdminItems"></div>
+        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
+    </div>
+
+    <div id="modalConfirm" class="modal-box" style="display:none; text-align:center;">
+        <div class="modal-handle"></div>
+        <div class="confirm-icon" id="confirmIcon">❓</div>
+        <div class="modal-title" id="confirmTitle">Confirmar?</div>
+        <p class="confirm-desc" id="confirmDesc"></p>
+        <button id="btnConfirmarFinal" class="btn-confirm">CONFIRMAR</button>
+        <button onclick="fecharModal()" class="btn-cancel-text">Cancelar</button>
+    </div>
+
+    <div id="modalHistDetalhes" class="modal-box" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="histDetalhesTitulo">Detalhes</div>
+        <div id="histDetalhesCorpo"></div>
+        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec";
+
+    // ── PWA MANIFEST ──────────────────────────────────────────────────────────
+    const manifestData = {
+        name: "EBD Digital · Nova Suíça", short_name: "EBD Nova Suíça",
+        start_url: "./", display: "standalone",
+        background_color: "#f8f7ff", theme_color: "#4f46e5",
+        icons: [
+            { src: "https://placehold.co/192x192/4f46e5/ffffff?text=EBD", sizes: "192x192", type: "image/png" },
+            { src: "https://placehold.co/512x512/4f46e5/ffffff?text=EBD", sizes: "512x512", type: "image/png" }
+        ]
+    };
+    const mBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+    document.getElementById('pwa-manifest').href = URL.createObjectURL(mBlob);
+
+    // ── SERVICE WORKER (offline) ───────────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE='ebd-v2';
+            self.addEventListener('install', e => e.waitUntil(
+                caches.open(CACHE).then(c => c.addAll(['./','https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap','https://cdn.jsdelivr.net/npm/chart.js']).catch(()=>{}))
+            ));
+            self.addEventListener('fetch', e => e.respondWith(
+                caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('', {status: 503})))
+            ));
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    }
+
+    // ── DADOS ─────────────────────────────────────────────────────────────────
+    let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
+        { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
+        { nome: "ALAN QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
+        { nome: "ANTONIA APARECIDA FUZATO", apelido: "Irmã Tânia", oculto: false },
+        { nome: "APARECIDA GRANADA", apelido: "Irmã Cida (Edirlei)", oculto: false },
+        { nome: "CREUZA QUINTELA DA SILVA", apelido: "Membro", oculto: false },
+        { nome: "CRISTINA", apelido: "Membro", oculto: false },
+        { nome: "EDERLEI APARECIDO", apelido: "Membro", oculto: false },
+        { nome: "ELISANGELA SILVEIRA", apelido: "Membro", oculto: false },
+        { nome: "ELZA MENEZES", apelido: "Membro", oculto: false },
+        { nome: "ENZO GABRIEL", apelido: "Membro", oculto: false },
+        { nome: "FERNANDA DE OLIVEIRA", apelido: "Membro", oculto: false },
+        { nome: "GINAUSIO CORREIA MENEZES", apelido: "Membro", oculto: false },
+        { nome: "ISABELLE GRANADA", apelido: "Membro", oculto: false },
+        { nome: "ISAQUE GRANADA", apelido: "Membro", oculto: false },
+        { nome: "JANAINA", apelido: "Membro", oculto: false },
+        { nome: "JEFERSON BATISTA", apelido: "Membro", oculto: false },
+        { nome: "JENIFER MONIQUE", apelido: "Membro", oculto: false },
+        { nome: "JOSE GERISMAR ONIAS", apelido: "Pastor", oculto: false },
+        { nome: "JOSELMA QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
+        { nome: "JUNIOR DE OLIVEIRA", apelido: "Membro", oculto: false },
+        { nome: "LUCAS HENRIQUE", apelido: "Membro", oculto: false },
+        { nome: "LUIZ CARLOS SABINO", apelido: "Irmão Luiz", oculto: false },
+        { nome: "MANOELINA FUZATO", apelido: "Irmã Nela", oculto: false },
+        { nome: "MARIA DA CRUZ CONCEIÇÃO", apelido: "Membro", oculto: false },
+        { nome: "MARIANA", apelido: "Membro", oculto: false },
+        { nome: "MAYCON APARECIDO CARVALHO", apelido: "Membro", oculto: false },
+        { nome: "NATALINO GERMANO", apelido: "Membro", oculto: false },
+        { nome: "OZIEL DA FONSECA", apelido: "Membro", oculto: false },
+        { nome: "PEDRO HENRIQUE", apelido: "Membro", oculto: false },
+        { nome: "VICTOR HUGO", apelido: "Membro", oculto: false },
+        { nome: "GERALDO", apelido: "Membro", oculto: false },
+        { nome: "VIRGÍNIA", apelido: "Membro", oculto: false }
+    ];
+
+    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36')) || {};
+    let acaoPendente = null, indexPendente = null;
+    let profA = "PASTOR JOSÉ", profJ = "ADONIAS";
+
+    // ── AUTO-DATA: detecta domingo e pré-seleciona ────────────────────────────
+    function calcularDataAula() {
+        const hoje = new Date();
+        if (hoje.getDay() === 0) return hoje.toLocaleDateString('pt-BR'); // é domingo
+        const ultimo = new Date(hoje);
+        ultimo.setDate(hoje.getDate() - hoje.getDay()); // volta ao último domingo
+        return ultimo.toLocaleDateString('pt-BR');
+    }
+    let dataAula = calcularDataAula();
+
+    // ── HAPTIC ────────────────────────────────────────────────────────────────
+    function haptic(type) {
+        if (!navigator.vibrate) return;
+        if (type === 'light') navigator.vibrate(25);
+        else if (type === 'medium') navigator.vibrate(45);
+        else if (type === 'success') navigator.vibrate([30, 50, 30]);
+    }
+
+    // ── CAPITALIZE ────────────────────────────────────────────────────────────
+    function capitalize(str) {
+        return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+    function render() {
+        const container = document.getElementById('lista');
+        const busca = document.getElementById('busca').value.toLowerCase();
+        container.innerHTML = '';
+        let p = 0, a = 0, v = 0, total = 0, marcados = 0;
+
+        db.sort((x, y) => x.nome.localeCompare(y.nome)).filter(m => !m.oculto).forEach(m => {
+            if (busca && !m.nome.toLowerCase().includes(busca) && !m.apelido.toLowerCase().includes(busca)) return;
+            const st = presencas[m.nome]?.status;
+            total++; if (st) marcados++;
+            if (st === 'P') p++; if (st === 'A') a++; if (st === 'V') v++;
+
+            const card = document.createElement('div');
+            card.className = `aluno-card ${st === 'P' ? 'presente' : st === 'A' ? 'ausente' : st === 'V' ? 'visitante-cor' : ''}`;
+            const ofertou = presencas[m.nome]?.ofertou;
+            const perguntas = presencas[m.nome]?.perguntas || 0;
+            card.innerHTML = `
+              <div class="card-top">
+                <div>
+                  <div class="card-name">${capitalize(m.nome)}<span class="print-status ${st||''}">${st||'—'}</span></div>
+                  <div class="card-sub">${m.apelido}</div>
+                </div>
+                <button onclick="toggleOferta('${m.nome}')" class="oferta-btn ${ofertou ? 'ativo' : ''}" title="Oferta">🪙</button>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-p ${st === 'P' ? 'active' : ''}" onclick="votar('${m.nome}','P')">✓ Pres.</button>
+                <button class="btn btn-a ${st === 'A' ? 'active' : ''}" onclick="votar('${m.nome}','A')">✗ Aus.</button>
+                <button class="btn btn-v ${st === 'V' ? 'active' : ''}" onclick="votar('${m.nome}','V')">👋 Visit.</button>
+                <div class="counter-box">
+                  <button class="counter-btn" onclick="addPergunta('${m.nome}',-1)">−</button>
+                  <span class="counter-val">${perguntas}❓</span>
+                  <button class="counter-btn" onclick="addPergunta('${m.nome}',1)">+</button>
+                </div>
+              </div>`;
+            container.appendChild(card);
+        });
+
+        if (!total && busca) container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado para "<b>${busca}</b>"</p></div>`;
+
+        document.getElementById('cnt-p').textContent = p;
+        document.getElementById('cnt-a').textContent = a;
+        document.getElementById('cnt-v').textContent = v;
+
+        const pct = total > 0 ? Math.round((marcados / total) * 100) : 0;
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-text').textContent = `${marcados} / ${total} marcados`;
+
+        if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update('none'); }
+    }
+
+    // ── MARCAR TODOS ──────────────────────────────────────────────────────────
+    function marcarTodosPresentes() {
+        haptic('medium');
+        db.filter(m => !m.oculto).forEach(m => {
+            if (!presencas[m.nome]) presencas[m.nome] = { perguntas: 0, ofertou: false };
+            presencas[m.nome].status = 'P';
+        });
+        save(); render();
+        showToast('✓ Todos marcados como presentes');
+    }
+
+    // ── VOTAR ─────────────────────────────────────────────────────────────────
+    function votar(n, s) {
+        haptic('light');
+        if (!presencas[n]) presencas[n] = { perguntas: 0, ofertou: false };
+        presencas[n].status = s; save(); render();
+    }
+    function toggleOferta(n) { if (!presencas[n]) presencas[n] = { status: null, perguntas: 0, ofertou: false }; presencas[n].ofertou = !presencas[n].ofertou; save(); render(); }
+    function addPergunta(n, q) { if (!presencas[n]) presencas[n] = { status: null, perguntas: 0, ofertou: false }; presencas[n].perguntas = Math.max(0, (presencas[n].perguntas || 0) + q); save(); render(); }
+
+    // ── MODO RÁPIDO ───────────────────────────────────────────────────────────
+    let rapidoLista = [], rapidoIdx = 0;
+
+    function abrirModoRapido() {
+        haptic('medium');
+        rapidoLista = db.filter(m => !m.oculto).sort((a, b) => a.nome.localeCompare(b.nome));
+        rapidoIdx = 0;
+        document.getElementById('modoRapidoOverlay').style.display = 'flex';
+        renderRapido();
+    }
+    function fecharModoRapido() { document.getElementById('modoRapidoOverlay').style.display = 'none'; }
+
+    function renderRapido() {
+        const btns = document.getElementById('rapidoBtns');
+        if (rapidoIdx >= rapidoLista.length) {
+            document.getElementById('rapidoNome').textContent = '🎉 Concluído!';
+            document.getElementById('rapidoApelido').textContent = 'Todos os membros foram marcados.';
+            document.getElementById('rapidoProgress').textContent = `${rapidoLista.length} de ${rapidoLista.length}`;
+            btns.innerHTML = `<button class="rapido-btn p" style="background:var(--primary);" onclick="fecharModoRapido()">Fechar modo rápido</button>`;
+            return;
+        }
+        const m = rapidoLista[rapidoIdx];
+        document.getElementById('rapidoNome').textContent = capitalize(m.nome);
+        document.getElementById('rapidoApelido').textContent = m.apelido;
+        document.getElementById('rapidoProgress').textContent = `${rapidoIdx + 1} de ${rapidoLista.length}`;
+        btns.innerHTML = `
+            <button class="rapido-btn p" onclick="votarRapido('P')">✓ PRESENTE</button>
+            <button class="rapido-btn a" onclick="votarRapido('A')">✗ AUSENTE</button>
+            <button class="rapido-btn v" onclick="votarRapido('V')">👋 VISITANTE</button>`;
+    }
+    function votarRapido(s) {
+        haptic('light');
+        const m = rapidoLista[rapidoIdx];
+        if (!presencas[m.nome]) presencas[m.nome] = { perguntas: 0, ofertou: false };
+        presencas[m.nome].status = s;
+        save(); render(); rapidoIdx++; renderRapido();
+    }
+    function navegarRapido(dir) { rapidoIdx = Math.max(0, Math.min(rapidoLista.length - 1, rapidoIdx + dir)); renderRapido(); }
+
+    // ── DATA ──────────────────────────────────────────────────────────────────
+    function mudarData(v) { const p = v.split('-'); dataAula = `${p[2]}/${p[1]}/${p[0]}`; document.getElementById('data-label').textContent = dataAula; }
+
+    // ── HISTÓRICO ─────────────────────────────────────────────────────────────
+    function salvarHistorico(payload) {
+        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
+        hist.unshift({
+            data: payload.aula.data, profA: payload.aula.pA, profJ: payload.aula.pJ,
+            presentes: payload.frequencia.filter(f => f.status === 'P').length,
+            ausentes: payload.frequencia.filter(f => f.status === 'A').length,
+            visitantes: payload.frequencia.filter(f => f.status === 'V').length,
+            frequencia: payload.frequencia, ts: Date.now()
+        });
+        localStorage.setItem('ebd_historico', JSON.stringify(hist.slice(0, 20)));
+    }
+
+    function renderHistorico() {
+        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
+        const container = document.getElementById('historico-lista');
+        if (!hist.length) { container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.<br>O histórico aparece aqui após o envio.</p></div>'; return; }
+        container.innerHTML = hist.map((h, i) => `
+          <div class="hist-card" onclick="verDetalhesHistorico(${i})">
+            <div class="hist-date">📅 ${h.data}</div>
+            <div class="hist-stats">
+              <span class="hist-badge p">✓ ${h.presentes} presentes</span>
+              <span class="hist-badge a">✗ ${h.ausentes} ausentes</span>
+              ${h.visitantes > 0 ? `<span class="hist-badge v">👋 ${h.visitantes} visitantes</span>` : ''}
+            </div>
+            <div class="hist-prof">Prof. Adultos: <b>${h.profA}</b> · Prof. Jovens: <b>${h.profJ}</b></div>
+          </div>`).join('');
+    }
+
+    function verDetalhesHistorico(i) {
+        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
+        const h = hist[i];
+        document.getElementById('histDetalhesTitulo').textContent = `Chamada de ${h.data}`;
+        const pres = h.frequencia.filter(f => f.status === 'P').map(f => `<div style="padding:5px 0; border-bottom:1px solid var(--border); font-size:0.82rem; color:var(--success);">✓ ${capitalize(f.nome)}</div>`).join('');
+        const aus = h.frequencia.filter(f => f.status === 'A').map(f => `<div style="padding:5px 0; border-bottom:1px solid var(--border); font-size:0.82rem; color:var(--danger);">✗ ${capitalize(f.nome)}</div>`).join('');
+        document.getElementById('histDetalhesCorpo').innerHTML = `
+          <div style="margin-bottom:14px;">
+            <div style="font-size:0.72rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">Presentes (${h.presentes})</div>
+            ${pres || '<div style="font-size:0.8rem;color:var(--text-muted);">Nenhum</div>'}
+          </div>
+          <div>
+            <div style="font-size:0.72rem; font-weight:800; color:var(--danger); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">Ausentes (${h.ausentes})</div>
+            ${aus || '<div style="font-size:0.8rem;color:var(--text-muted);">Nenhum</div>'}
+          </div>`;
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalHistDetalhes').style.display = 'block';
+    }
+
+    // ── EXPORTAR PDF ──────────────────────────────────────────────────────────
+    function imprimirChamada() {
+        haptic('medium');
+        document.getElementById('printMeta').textContent = `Data: ${dataAula} · Prof. Adultos: ${profA} · Prof. Jovens: ${profJ}`;
+        window.print();
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────────────────────
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.style.display = 'block';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    // ── ENVIO ─────────────────────────────────────────────────────────────────
+    async function processarEnvio() {
+        const btn = document.getElementById('btnConfirmarFinal');
+        btn.textContent = "ENVIANDO..."; btn.disabled = true;
+        const payload = {
+            aula: { data: dataAula, pA: profA, pJ: profJ, bib: document.getElementById('bib').value, rev: document.getElementById('rev').value, vExtQtd: document.getElementById('qtdVisitantes').value, vExtNomes: document.getElementById('nomesVisitantes').value },
+            frequencia: db.map(m => ({ nome: m.nome, status: presencas[m.nome]?.status || 'A', perguntas: presencas[m.nome]?.perguntas || 0, ofertou: presencas[m.nome]?.ofertou || false }))
+        };
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            salvarHistorico(payload);
+            fecharModal();
+            haptic('success');
+            showToast('✓ CHAMADA ENVIADA COM SUCESSO');
+            setTimeout(() => { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }, 2500);
+        } catch (e) {
+            alert("Erro ao enviar. Verifique sua conexão.");
+            btn.disabled = false; btn.textContent = "CONFIRMAR";
+        }
+    }
+
+    // ── ADMIN ─────────────────────────────────────────────────────────────────
+    function abrirAdmin() { document.getElementById('modalOverlay').style.display = 'flex'; document.getElementById('modalAdmin').style.display = 'block'; listarAdmin(); }
+    function listarAdmin() {
+        document.getElementById('listaAdminItems').innerHTML = db.map((m, i) => `
+          <div class="admin-card-item">
+            <div style="max-width:58%">
+              <div style="font-size:0.8rem;font-weight:700;">${capitalize(m.nome)}</div>
+              <div style="font-size:0.68rem;color:var(--primary);font-weight:600;">${m.apelido}</div>
+            </div>
+            <div class="admin-actions">
+              <button class="admin-btn" style="background:var(--warning);" onclick="editarMembro(${i})">✏️</button>
+              <button class="admin-btn" style="background:${m.oculto ? 'var(--text-muted)' : 'var(--success)'};" onclick="toggleOculto(${i})">${m.oculto ? '🙈' : '👁️'}</button>
+              <button class="admin-btn" style="background:var(--danger);" onclick="confirmarAcao('EXCLUIR_MEMBRO',${i})">🗑️</button>
+            </div>
+          </div>`).join('');
+    }
+    function editarMembro(i) { document.getElementById('editIndex').value = i; document.getElementById('membroNome').value = db[i].nome; document.getElementById('membroApelido').value = db[i].apelido; document.getElementById('btnSalvarMembro').textContent = "ATUALIZAR"; document.getElementById('btnCancelaEdit').style.display = 'block'; }
+    function salvarMembro() { const i = parseInt(document.getElementById('editIndex').value); const nome = document.getElementById('membroNome').value.toUpperCase().trim(); const apelido = document.getElementById('membroApelido').value.trim() || "Membro"; if (!nome) return; if (i === -1) db.push({ nome, apelido, oculto: false }); else { db[i].nome = nome; db[i].apelido = apelido; } save(); limparFormAdmin(); listarAdmin(); render(); }
+    function toggleOculto(i) { db[i].oculto = !db[i].oculto; save(); listarAdmin(); render(); }
+    function limparFormAdmin() { document.getElementById('editIndex').value = "-1"; document.getElementById('membroNome').value = ""; document.getElementById('membroApelido').value = ""; document.getElementById('btnSalvarMembro').textContent = "SALVAR"; document.getElementById('btnCancelaEdit').style.display = 'none'; }
+
+    // ── MODAL ─────────────────────────────────────────────────────────────────
+    function fecharModal() { document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none'); document.getElementById('modalOverlay').style.display = 'none'; }
+    function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) fecharModal(); }
+
+    function abrirSeletor(tipo) {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalPicker').style.display = 'block';
+        const container = document.getElementById('pickerOptions');
+        container.innerHTML = '';
+        document.getElementById('pickerTitle').textContent = tipo === 'profA' ? "Professor Adultos" : "Professor Jovens";
+        ["PASTOR JOSÉ", "ADONIAS", "JOSELMA", "OUTRO"].forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'option-item'; div.textContent = opt;
+            div.onclick = () => {
+                if (tipo === 'profA') { profA = opt; document.querySelector('#btnProfA span').textContent = opt; }
+                else { profJ = opt; document.querySelector('#btnProfJ span').textContent = opt; }
+                fecharModal();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    function confirmarAcao(t, i = null) {
+        acaoPendente = t; indexPendente = i;
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalConfirm').style.display = 'block';
+        document.getElementById('modalAdmin').style.display = 'none';
+        const btn = document.getElementById('btnConfirmarFinal');
+        if (t === 'ENVIAR_RELATORIO') { document.getElementById('confirmIcon').textContent = "🚀"; document.getElementById('confirmTitle').textContent = "Enviar relatório?"; document.getElementById('confirmDesc').textContent = "Os dados serão salvos na planilha oficial e no histórico local."; btn.style.background = "#059669"; }
+        if (t === 'LIMPAR_CHAMADA') { document.getElementById('confirmIcon').textContent = "🧹"; document.getElementById('confirmTitle').textContent = "Zerar chamada?"; document.getElementById('confirmDesc').textContent = "Todas as marcações de hoje serão apagadas."; btn.style.background = "#dc2626"; }
+        if (t === 'EXCLUIR_MEMBRO') { document.getElementById('confirmIcon').textContent = "🗑️"; document.getElementById('confirmTitle').textContent = "Excluir membro?"; document.getElementById('confirmDesc').textContent = `Remover ${capitalize(db[i].nome)} permanentemente?`; btn.style.background = "#dc2626"; }
+        btn.onclick = executarAcao;
+    }
+    function executarAcao() { if (acaoPendente === 'ENVIAR_RELATORIO') processarEnvio(); if (acaoPendente === 'LIMPAR_CHAMADA') { localStorage.removeItem('ebd_hoje_v36'); location.reload(); } if (acaoPendente === 'EXCLUIR_MEMBRO') { db.splice(indexPendente, 1); save(); fecharModal(); abrirAdmin(); render(); } }
+
+    // ── TEMA ──────────────────────────────────────────────────────────────────
+    function toggleTheme() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('ebd_theme', t); }
+
+    // ── RANKING ───────────────────────────────────────────────────────────────
+    async function fetchRanking() {
+        const c = document.getElementById('ranking-lista');
+        c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
+        try {
+            const r = await fetch(SCRIPT_URL + "?action=getRanking");
+            const d = await r.json();
+            if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
+            c.innerHTML = '';
+            d.forEach((m, i) => {
+                const card = document.createElement('div');
+                card.className = 'rank-card';
+                const pc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                card.innerHTML = `<div class="rank-pos ${pc}">${i + 1}°</div><div class="rank-info"><div class="rank-name">${capitalize(m.nome)}</div><div class="rank-sub">${m.apelido || 'Membro'}</div></div><div class="rank-pts">${m.pontos} pts</div>`;
+                c.appendChild(card);
+            });
+        } catch (e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao buscar ranking.</p></div>'; }
+    }
+
+    // ── TABS ──────────────────────────────────────────────────────────────────
+    function switchTab(t) {
+        ['chamada', 'ranking', 'historico'].forEach(tab => {
+            document.getElementById('tab-' + tab).style.display = t === tab ? 'block' : 'none';
+            document.getElementById('btn-' + tab).classList.toggle('active', t === tab);
+        });
+        if (t === 'ranking') fetchRanking();
+        if (t === 'historico') renderHistorico();
+    }
+
+    // ── SAVE ──────────────────────────────────────────────────────────────────
+    function save() { localStorage.setItem('ebd_hoje_v36', JSON.stringify(presencas)); localStorage.setItem('ebd_db_v36', JSON.stringify(db)); }
+
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    window.onload = () => {
+        document.body.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
+        document.getElementById('data-label').textContent = dataAula;
+        window.miniChart = new Chart(document.getElementById('miniChart'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#059669', '#dc2626', '#d97706'], borderWidth: 0, hoverOffset: 0 }] },
+            options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 400 } }
+        });
+        render();
+    };
+</script>
+</body>
+</html>
