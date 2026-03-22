@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EBD Digital | AD Belém v2.8</title>
+    <title>EBD Digital-Nova suiça</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -22,14 +22,17 @@
         
         .theme-toggle { position: absolute; top: 15px; right: 15px; background: var(--card); border: 1px solid var(--neutral); padding: 8px; border-radius: 50%; cursor: pointer; z-index: 1001; }
 
-        header { position: sticky; top: 0; z-index: 100; background: var(--header-bg); backdrop-filter: blur(10px); padding: 12px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        header { position: sticky; top: 0; z-index: 100; background: var(--header-bg); backdrop-filter: blur(10px); padding: 12px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 10px; }
         .header-content { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
         .chart-box { width: 55px; height: 55px; flex-shrink: 0; }
         
-        /* Badge de Data Estilizado */
         .date-badge { background: rgba(37, 99, 235, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-top: 4px; border: 1px solid rgba(37, 99, 235, 0.2); }
 
         .search-box { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--neutral); font-size: 16px; background: var(--card); color: var(--text); outline: none; }
+
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; background: var(--card); padding: 6px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .nav-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: none; color: var(--neutral); transition: 0.3s; }
+        .nav-btn.active { background: var(--primary); color: white; }
 
         .aluno-card { background: var(--card); border-radius: 16px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(120,120,120,0.1); border-left: 5px solid transparent; }
         .aluno-card.presente { border-left-color: var(--success); }
@@ -42,6 +45,9 @@
         .btn-p.active { background: var(--success); }
         .btn-a.active { background: var(--danger); }
         .btn-v.active { background: var(--warning); }
+
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card); margin-bottom: 8px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); }
+        .rank-pos { width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; }
 
         .fechamento { background: #1e293b; color: white; padding: 24px; border-radius: 24px; margin-top: 20px; }
         .fechamento label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; display: block; margin: 10px 0 5px 5px; text-transform: uppercase; }
@@ -64,7 +70,7 @@
     <div class="header-content">
         <div class="chart-box"><canvas id="miniChart"></canvas></div>
         <div class="header-info">
-            <h1 style="font-size: 1.1rem; margin:0; color:var(--primary); font-weight: 800;">AD BELEM- Nova Suiça</h1>
+            <h1 style="font-size: 1.1rem; margin:0; color:var(--primary); font-weight: 800;">AD BELÉM</h1>
             <div id="data-label" style="font-size: 0.75rem; font-weight: 700;">Data</div>
             <div class="date-badge" onclick="document.getElementById('dataManual').showPicker()">
                 📅 ALTERAR DATA
@@ -72,28 +78,40 @@
             <input type="date" id="dataManual" style="position:absolute; opacity:0; pointer-events:none;" onchange="mudarData(this.value)">
         </div>
     </div>
-    <input type="text" id="busca" class="search-box" placeholder="🔎 Buscar por nome ou apelido..." onkeyup="render()">
 </header>
 
-<div id="lista"></div>
+<div class="nav-tabs">
+    <button id="btn-chamada" class="nav-btn active" onclick="switchTab('chamada')">📋 CHAMADA</button>
+    <button id="btn-ranking" class="nav-btn" onclick="switchTab('ranking')">🏆 RANKING</button>
+</div>
 
-<div class="fechamento">
-    <h3 style="color:#fbbf24; text-align:center; margin-top:0;">📊 FECHAMENTO</h3>
-    <label>Professores</label>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <select id="profA"><option>PASTOR JOSÉ</option><option>ADONIAS</option></select>
-        <select id="profJ"><option>ADONIAS</option><option>JOSELMA</option></select>
+<div id="tab-chamada">
+    <input type="text" id="busca" class="search-box" placeholder="🔎 Buscar por nome ou apelido..." onkeyup="render()" style="margin-bottom:15px;">
+    <div id="lista"></div>
+
+    <div class="fechamento">
+        <h3 style="color:#fbbf24; text-align:center; margin-top:0;">📊 FECHAMENTO</h3>
+        <label>Professores</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <select id="profA"><option>PASTOR JOSÉ</option><option>ADONIAS</option></select>
+            <select id="profJ"><option>ADONIAS</option><option>JOSELMA</option></select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div><label>Bíblias</label><input type="number" id="bib" value="0"></div>
+            <div><label>Revistas</label><input type="number" id="rev" value="0"></div>
+        </div>
+        <hr style="border:0; border-top:1px solid #475569; margin:15px 0;">
+        <h4 style="color:#fbbf24; text-align:center; margin:0;">👥 VISITANTES EXTERNOS</h4>
+        <label>Quantidade</label><input type="number" id="qtdVisitantes" value="0">
+        <label>Nomes (Opcional)</label><textarea id="nomesVisitantes" rows="2" placeholder="Ex: Maria, João..."></textarea>
+        <button class="btn-send" onclick="enviarRelatorio()">ENVIAR CHAMADA</button>
+        <button onclick="abrirModalReset()" style="background:none; border:none; color:#94a3b8; width:100%; margin-top:20px; font-size:0.65rem; text-decoration:underline; cursor:pointer;">🗑️ ZERAR TUDO</button>
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div><label>Bíblias</label><input type="number" id="bib" value="0"></div>
-        <div><label>Revistas</label><input type="number" id="rev" value="0"></div>
-    </div>
-    <hr style="border:0; border-top:1px solid #475569; margin:15px 0;">
-    <h4 style="color:#fbbf24; text-align:center; margin:0;">👥 VISITANTES EXTERNOS</h4>
-    <label>Quantidade</label><input type="number" id="qtdVisitantes" value="0">
-    <label>Nomes (Opcional)</label><textarea id="nomesVisitantes" rows="2" placeholder="Ex: Maria, João..."></textarea>
-    <button class="btn-send" onclick="enviarRelatorio()">ENVIAR CHAMADA</button>
-    <button onclick="abrirModalReset()" style="background:none; border:none; color:#94a3b8; width:100%; margin-top:20px; font-size:0.65rem; text-decoration:underline; cursor:pointer;">🗑️ ZERAR TUDO</button>
+</div>
+
+<div id="tab-ranking" style="display:none;">
+    <h3 style="text-align:center; color:var(--primary);">TOP ALUNOS</h3>
+    <div id="ranking-lista">Carregando dados da planilha...</div>
 </div>
 
 <button class="fab-admin" onclick="abrirAdmin()">⚙️</button>
@@ -106,23 +124,25 @@
         <button onclick="fecharModal()" style="margin-top:10px; background:none; border:none; color:var(--neutral);">Cancelar</button>
     </div>
 
-    <div id="modalAdmin" class="modal-box" style="display:none; max-width: 380px;">
+    <div id="modalAdmin" class="modal-box" style="display:none;">
         <h3>Membros</h3>
         <input type="hidden" id="editIndex" value="-1">
         <input type="text" id="novoNome" class="admin-input" placeholder="Nome Completo">
         <input type="text" id="novoApelido" class="admin-input" placeholder="Apelido">
-        <button onclick="salvarMembro()" id="btnSalvarMembro" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:700;">SALVAR NOVO</button>
+        <button onclick="salvarMembro()" id="btnSalvarMembro" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:700;">SALVAR</button>
         <div id="listaAdmin" style="margin-top:15px; text-align:left; max-height:220px; overflow-y:auto; font-size:0.8rem; border-top:1px solid #eee; padding-top:10px;"></div>
         <button onclick="fecharModal()" style="margin-top:10px; background:none; border:none; color:var(--neutral);">FECHAR</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3odyTYfXt8hgOXxMSpG_tBaEFIMGhU2HjsNkuLxi58S3_S6Sz16IIDtfJclyupyDT/exec";
+    // LINK DO SEU SCRIPT ATUALIZADO
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfLitqWtgPH6q6L1QyMCcH2rwOxfqVRtawQWBOKxDaN4HHTs2nmr2Aasj4X31CjZLO/exec";
+
     const nomesPadrao = ["ADONIAS QUEIROZ DO MONTE", "ALAN QUEIROZ DO MONTE", "ANTONIA APARECIDA FUZATO", "APARECIDA CARDOSO QUINTELA", "APARECIDA DE OLIVEIRA", "APARECIDA GRANADA", "CREUZA QUINTELA DA SILVA", "CRISTINA", "EDERLEI APARECIDO", "ELISANGELA SILVEIRA", "ELZA MENEZES", "ENZO GABRIEL", "FERNANDA DE OLIVEIRA", "GINAUSIO CORREIA MENEZES", "ISAQUE GRANADA", "ISABELLE GRANADA", "JANAINA", "JEFERSON BATISTA", "JENIFER MONIQUE", "JOSE GERISMAR ONIAS", "JOSELMA QUEIROZ DO MONTE", "JUNIOR DE OLIVEIRA", "LUCAS HENRIQUE", "LUIZ CARLOS SABINO", "MANOELINA FUZATO", "MARIA DA CRUZ CONCEIÇÃO", "MARIANA", "MAYCON APARECIDO CARVALHO", "NATALINO GERMANO", "OZIEL DA FONSECA", "PEDRO HENRIQUE", "VICTOR HUGO"].sort();
 
-    let db = JSON.parse(localStorage.getItem('ebd_db_v28')) || nomesPadrao.map(n => ({nome: n, apelido: "", oculto: false}));
-    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v28')) || {};
+    let db = JSON.parse(localStorage.getItem('ebd_db_v29')) || nomesPadrao.map(n => ({nome: n, apelido: "", oculto: false}));
+    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v29')) || {};
     let dataAula = new Date().toLocaleDateString('pt-BR');
     let miniChart = null;
 
@@ -133,6 +153,35 @@
             data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#16a34a', '#dc2626', '#ca8a04'], borderWidth: 0 }] },
             options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
         });
+    }
+
+    function switchTab(tab) {
+        document.getElementById('tab-chamada').style.display = tab === 'chamada' ? 'block' : 'none';
+        document.getElementById('tab-ranking').style.display = tab === 'ranking' ? 'block' : 'none';
+        document.getElementById('btn-chamada').classList.toggle('active', tab === 'chamada');
+        document.getElementById('btn-ranking').classList.toggle('active', tab === 'ranking');
+        if(tab === 'ranking') carregarRanking();
+    }
+
+    async function carregarRanking() {
+        const lista = document.getElementById('ranking-lista');
+        lista.innerHTML = "<p style='text-align:center;'>Buscando dados da planilha...</p>";
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const dados = await res.json();
+            lista.innerHTML = "";
+            if(dados.length === 0) { lista.innerHTML = "Nenhum ponto registrado ainda na planilha."; return; }
+            dados.forEach((aluno, i) => {
+                lista.innerHTML += `
+                    <div class="ranking-item">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="rank-pos">${i+1}</div>
+                            <span style="font-weight:700; font-size:0.9rem;">${aluno.nome}</span>
+                        </div>
+                        <span style="color:var(--success); font-weight:800;">${aluno.pontos} pts</span>
+                    </div>`;
+            });
+        } catch(e) { lista.innerHTML = "<p style='color:red; text-align:center;'>Erro ao carregar ranking. Verifique se publicou o script como 'Qualquer pessoa'.</p>"; }
     }
 
     function render() {
@@ -157,13 +206,12 @@
                 </div>`;
             container.appendChild(card);
         });
-
         if(miniChart) { miniChart.data.datasets[0].data = [p, a, v]; miniChart.update(); }
     }
 
     function votar(n, s) { 
         presencas[n] = {status: s}; 
-        localStorage.setItem('ebd_hoje_v28', JSON.stringify(presencas)); 
+        localStorage.setItem('ebd_hoje_v29', JSON.stringify(presencas)); 
         render(); 
     }
 
@@ -181,10 +229,10 @@
 
     function abrirModalReset() {
         document.getElementById('modalTitle').innerText = "Zerar Tudo?";
-        document.getElementById('modalDesc').innerText = "Deseja apagar as presenças de hoje?";
+        document.getElementById('modalDesc').innerText = "Deseja apagar as marcações de hoje?";
         const btn = document.getElementById('btnModalAcao');
         btn.style.background = "var(--danger)";
-        btn.onclick = () => { presencas = {}; localStorage.removeItem('ebd_hoje_v28'); fecharModal(); render(); };
+        btn.onclick = () => { presencas = {}; localStorage.removeItem('ebd_hoje_v29'); fecharModal(); render(); };
         document.getElementById('modalOverlay').style.display='flex';
         document.getElementById('modalConfirm').style.display='block';
     }
@@ -215,12 +263,11 @@
         };
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-            localStorage.removeItem('ebd_hoje_v28');
+            localStorage.removeItem('ebd_hoje_v29');
             location.reload();
         } catch (e) { alert("Erro de conexão!"); btn.disabled = false; }
     }
 
-    // GESTÃO DE MEMBROS
     function abrirAdmin() { 
         document.getElementById('modalOverlay').style.display='flex'; 
         document.getElementById('modalAdmin').style.display='block'; 
@@ -255,14 +302,14 @@
         if(!n) return;
         if(idx === -1) db.push({nome: n, apelido: a, oculto: false});
         else { db[idx].nome = n; db[idx].apelido = a; }
-        localStorage.setItem('ebd_db_v28', JSON.stringify(db));
+        localStorage.setItem('ebd_db_v29', JSON.stringify(db));
         document.getElementById('editIndex').value = "-1";
         document.getElementById('novoNome').value = ""; document.getElementById('novoApelido').value = "";
-        document.getElementById('btnSalvarMembro').innerText = "SALVAR NOVO";
+        document.getElementById('btnSalvarMembro').innerText = "SALVAR";
         renderAdmin(); render();
     }
 
-    function toggleMembro(i) { db[i].oculto = !db[i].oculto; localStorage.setItem('ebd_db_v28', JSON.stringify(db)); renderAdmin(); render(); }
+    function toggleMembro(i) { db[i].oculto = !db[i].oculto; localStorage.setItem('ebd_db_v29', JSON.stringify(db)); renderAdmin(); render(); }
     function fecharModal() { document.querySelectorAll('.modal-box').forEach(m=>m.style.display='none'); document.getElementById('modalOverlay').style.display='none'; }
 
     window.onload = () => {
