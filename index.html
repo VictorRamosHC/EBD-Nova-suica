@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EBD Digital-Nova suiça</title>
+    <title>EBD Digital | AD Belém v2.9.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -70,7 +70,7 @@
     <div class="header-content">
         <div class="chart-box"><canvas id="miniChart"></canvas></div>
         <div class="header-info">
-            <h1 style="font-size: 1.1rem; margin:0; color:var(--primary); font-weight: 800;">AD BELEM-Nova Suiça</h1>
+            <h1 style="font-size: 1.1rem; margin:0; color:var(--primary); font-weight: 800;">AD BELÉM</h1>
             <div id="data-label" style="font-size: 0.75rem; font-weight: 700;">Data</div>
             <div class="date-badge" onclick="document.getElementById('dataManual').showPicker()">
                 📅 ALTERAR DATA
@@ -136,8 +136,8 @@
 </div>
 
 <script>
-    // LINK DO SEU SCRIPT ATUALIZADO
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfLitqWtgPH6q6L1QyMCcH2rwOxfqVRtawQWBOKxDaN4HHTs2nmr2Aasj4X31CjZLO/exec";
+    // NOVO LINK DO SCRIPT INTEGRADO
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLoHrN_hW3vAftHKbL3vTWgmLM-Qd7Hyafprhj82K3-MsLASmqRy6SrJoMnXn267lc/exec";
 
     const nomesPadrao = ["ADONIAS QUEIROZ DO MONTE", "ALAN QUEIROZ DO MONTE", "ANTONIA APARECIDA FUZATO", "APARECIDA CARDOSO QUINTELA", "APARECIDA DE OLIVEIRA", "APARECIDA GRANADA", "CREUZA QUINTELA DA SILVA", "CRISTINA", "EDERLEI APARECIDO", "ELISANGELA SILVEIRA", "ELZA MENEZES", "ENZO GABRIEL", "FERNANDA DE OLIVEIRA", "GINAUSIO CORREIA MENEZES", "ISAQUE GRANADA", "ISABELLE GRANADA", "JANAINA", "JEFERSON BATISTA", "JENIFER MONIQUE", "JOSE GERISMAR ONIAS", "JOSELMA QUEIROZ DO MONTE", "JUNIOR DE OLIVEIRA", "LUCAS HENRIQUE", "LUIZ CARLOS SABINO", "MANOELINA FUZATO", "MARIA DA CRUZ CONCEIÇÃO", "MARIANA", "MAYCON APARECIDO CARVALHO", "NATALINO GERMANO", "OZIEL DA FONSECA", "PEDRO HENRIQUE", "VICTOR HUGO"].sort();
 
@@ -165,12 +165,12 @@
 
     async function carregarRanking() {
         const lista = document.getElementById('ranking-lista');
-        lista.innerHTML = "<p style='text-align:center;'>Buscando dados da planilha...</p>";
+        lista.innerHTML = "<p style='text-align:center;'>Buscando ranking...</p>";
         try {
             const res = await fetch(SCRIPT_URL);
             const dados = await res.json();
             lista.innerHTML = "";
-            if(dados.length === 0) { lista.innerHTML = "Nenhum ponto registrado ainda na planilha."; return; }
+            if(dados.length === 0) { lista.innerHTML = "Nada no ranking ainda."; return; }
             dados.forEach((aluno, i) => {
                 lista.innerHTML += `
                     <div class="ranking-item">
@@ -181,7 +181,7 @@
                         <span style="color:var(--success); font-weight:800;">${aluno.pontos} pts</span>
                     </div>`;
             });
-        } catch(e) { lista.innerHTML = "<p style='color:red; text-align:center;'>Erro ao carregar ranking. Verifique se publicou o script como 'Qualquer pessoa'.</p>"; }
+        } catch(e) { lista.innerHTML = "<p style='color:red; text-align:center;'>Erro de conexão com o script.</p>"; }
     }
 
     function render() {
