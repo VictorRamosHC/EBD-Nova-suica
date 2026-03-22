@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EBD Digital | AD Belém v2.9.1</title>
+    <title>EBD Digital | AD Belém v2.9.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -111,7 +111,7 @@
 
 <div id="tab-ranking" style="display:none;">
     <h3 style="text-align:center; color:var(--primary);">TOP ALUNOS</h3>
-    <div id="ranking-lista">Carregando dados da planilha...</div>
+    <div id="ranking-lista">Buscando dados na planilha...</div>
 </div>
 
 <button class="fab-admin" onclick="abrirAdmin()">⚙️</button>
@@ -136,8 +136,8 @@
 </div>
 
 <script>
-    // NOVO LINK DO SCRIPT INTEGRADO
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLoHrN_hW3vAftHKbL3vTWgmLM-Qd7Hyafprhj82K3-MsLASmqRy6SrJoMnXn267lc/exec";
+    // LINK ATUALIZADO PELO USUÁRIO (MARÇO/2026)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEKr4EbQ59dCy_24oJwrMnKT04-hQc3b5vX5tspqcwvwkV24SqX_fYo_Loq7ugQJ9_rw/exec";
 
     const nomesPadrao = ["ADONIAS QUEIROZ DO MONTE", "ALAN QUEIROZ DO MONTE", "ANTONIA APARECIDA FUZATO", "APARECIDA CARDOSO QUINTELA", "APARECIDA DE OLIVEIRA", "APARECIDA GRANADA", "CREUZA QUINTELA DA SILVA", "CRISTINA", "EDERLEI APARECIDO", "ELISANGELA SILVEIRA", "ELZA MENEZES", "ENZO GABRIEL", "FERNANDA DE OLIVEIRA", "GINAUSIO CORREIA MENEZES", "ISAQUE GRANADA", "ISABELLE GRANADA", "JANAINA", "JEFERSON BATISTA", "JENIFER MONIQUE", "JOSE GERISMAR ONIAS", "JOSELMA QUEIROZ DO MONTE", "JUNIOR DE OLIVEIRA", "LUCAS HENRIQUE", "LUIZ CARLOS SABINO", "MANOELINA FUZATO", "MARIA DA CRUZ CONCEIÇÃO", "MARIANA", "MAYCON APARECIDO CARVALHO", "NATALINO GERMANO", "OZIEL DA FONSECA", "PEDRO HENRIQUE", "VICTOR HUGO"].sort();
 
@@ -165,12 +165,12 @@
 
     async function carregarRanking() {
         const lista = document.getElementById('ranking-lista');
-        lista.innerHTML = "<p style='text-align:center;'>Buscando ranking...</p>";
+        lista.innerHTML = "<p style='text-align:center;'>Buscando ranking atualizado...</p>";
         try {
             const res = await fetch(SCRIPT_URL);
             const dados = await res.json();
             lista.innerHTML = "";
-            if(dados.length === 0) { lista.innerHTML = "Nada no ranking ainda."; return; }
+            if(dados.length === 0) { lista.innerHTML = "O ranking aparecerá após o primeiro envio."; return; }
             dados.forEach((aluno, i) => {
                 lista.innerHTML += `
                     <div class="ranking-item">
@@ -181,7 +181,7 @@
                         <span style="color:var(--success); font-weight:800;">${aluno.pontos} pts</span>
                     </div>`;
             });
-        } catch(e) { lista.innerHTML = "<p style='color:red; text-align:center;'>Erro de conexão com o script.</p>"; }
+        } catch(e) { lista.innerHTML = "<p style='color:red; text-align:center;'>Erro de conexão: Verifique se o script foi implantado como 'Qualquer pessoa'.</p>"; }
     }
 
     function render() {
@@ -265,7 +265,7 @@
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
             localStorage.removeItem('ebd_hoje_v29');
             location.reload();
-        } catch (e) { alert("Erro de conexão!"); btn.disabled = false; }
+        } catch (e) { alert("Erro de conexão com o script Google!"); btn.disabled = false; }
     }
 
     function abrirAdmin() { 
