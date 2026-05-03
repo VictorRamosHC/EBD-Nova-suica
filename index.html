@@ -33,6 +33,8 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; }
         body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 0 12px 110px; transition: background 0.3s, color 0.3s; min-height: 100vh; }
+        body.modal-open { overflow: hidden; }
+        body.modal-open #main-content { filter: blur(8px); transition: filter 0.3s ease; }
 
         /* HEADER */
         header { position: sticky; top: 0; z-index: 100; background: var(--header-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 12px 16px; margin: 0 -12px 14px; border-bottom: 1px solid var(--border); }
@@ -44,8 +46,10 @@
         .date-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
         .date-text { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
         .date-badge { background: var(--primary-dim); color: var(--primary); border: 1px solid var(--border); padding: 2px 9px; border-radius: 20px; font-size: 0.62rem; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; }
-        .header-actions { display: flex; gap: 6px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
         .icon-btn { background: var(--surface); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow); }
+        .user-badge { background: var(--primary-dim); color: var(--primary); border: 1px solid var(--primary-light); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; font-family: 'Sora', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; border-color: var(--border); }
+        .user-badge:active { transform: scale(0.95); background: var(--primary); color: white; }
 
         /* STATS */
         .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
@@ -57,8 +61,8 @@
         .stat-pill.s-v .stat-num { color: var(--warning); } .stat-pill.s-v .stat-lbl { color: var(--warning); }
 
         /* NAV */
-        .nav-tabs { display: flex; gap: 5px; margin-bottom: 12px; background: var(--surface); padding: 5px; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .nav-btn { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.66rem; cursor: pointer; background: none; color: var(--text-muted); transition: all 0.2s; }
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 12px; background: var(--surface); padding: 5px; border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); overflow-x: auto; }
+        .nav-btn { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.66rem; cursor: pointer; background: none; color: var(--text-muted); transition: all 0.2s; white-space: nowrap; min-width: fit-content; }
         .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 3px 10px rgba(79,70,229,0.35); }
 
         /* TOOLBAR */
@@ -113,10 +117,7 @@
         .fechamento input, .fechamento textarea { width: 100%; padding: 11px 13px; border-radius: 12px; background: rgba(255,255,255,0.08); color: white; border: 1.5px solid rgba(165,180,252,0.2); outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; }
         .fechamento textarea { resize: none; margin-bottom: 4px; }
         .fechamento input::placeholder, .fechamento textarea::placeholder { color: rgba(255,255,255,0.3); }
-        .fechamento input:focus, .fechamento textarea:focus { border-color: #818cf8; }
-        .btn-enviar { width: 100%; padding: 15px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 0.9rem; border-radius: 14px; cursor: pointer; margin-top: 13px; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(5,150,105,0.4); transition: transform 0.1s; }
-        .btn-enviar:active { transform: scale(0.98); }
-        .btn-limpar { width: 100%; padding: 10px; border: 1.5px dashed rgba(220,38,38,0.45); background: rgba(220,38,38,0.06); color: #f87171; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.7rem; border-radius: 12px; cursor: pointer; margin-top: 8px; }
+        .fechamento input:focus, .fechamento textarea:focus { border-color: #fbbf24; }
 
         /* RANKING */
         .rank-card { background: var(--surface); border-radius: var(--radius); padding: 13px; margin-bottom: 8px; display: flex; align-items: center; box-shadow: var(--shadow); border: 1.5px solid var(--border); }
@@ -137,25 +138,41 @@
         .hist-badge.p { background: var(--success-dim); color: var(--success); }
         .hist-badge.a { background: var(--danger-dim); color: var(--danger); }
         .hist-badge.v { background: var(--warning-dim); color: var(--warning); }
-        .hist-prof { font-size: 0.7rem; color: var(--text-muted); }
+        .hist-prof { font-size: 0.68rem; color: var(--text-muted); }
+        .hist-responsavel { font-size: 0.65rem; font-weight: 700; background: var(--primary-dim); color: var(--primary); padding: 2px 8px; border-radius: 16px; display: inline-block; margin-top: 6px; }
+
+        /* CAIXA */
+        .card-caixa { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white; padding: 25px; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .saldo-label { font-size: 0.8rem; opacity: 0.8; font-weight: 600; }
+        .saldo-val { font-size: 2.2rem; font-weight: 800; margin-top: 5px; font-family: 'Sora', sans-serif; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-fin { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Sora', sans-serif; transition: transform 0.1s; }
+        .btn-fin:active { transform: scale(0.97); }
+        .mov-card { background: var(--surface); padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #ddd; border: 1px solid var(--border); }
+        .mov-desc { flex: 1; }
+        .mov-desc-titulo { font-weight: 700; font-size: 0.85rem; font-family: 'Sora'; }
+        .mov-desc-data { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .mov-valor { font-weight: 800; font-family: 'Sora'; color: var(--success); }
+        .mov-valor.saida { color: var(--danger); }
 
         /* FAB */
         .fab-admin { position: fixed; bottom: 24px; right: 20px; background: linear-gradient(135deg, #312e81, #4f46e5); color: white; width: 52px; height: 52px; border-radius: 50%; border: none; font-size: 20px; z-index: 999; cursor: pointer; box-shadow: 0 4px 16px rgba(79,70,229,0.4); transition: transform 0.15s; }
         .fab-admin:active { transform: scale(0.92); }
 
         /* MODAL */
-        #modalOverlay { display: none; position: fixed; inset: 0; background: rgba(13,11,30,0.8); z-index: 1000; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); padding: 0; }
-        .modal-box { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 22px 18px; max-height: 90vh; overflow-y: auto; color: var(--text); animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1); border-top: 1px solid var(--border); }
-        @keyframes slideUp { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #modalOverlay { display: none; position: fixed; inset: 0; background: rgba(13,11,30,0.6); z-index: 1000; align-items: flex-end; justify-content: center; backdrop-filter: blur(8px); padding: 0; transition: all 0.3s ease; }
+        .modal-box { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 22px 18px; max-height: 90vh; overflow-y: auto; color: var(--text); animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); border-top: 1px solid var(--border); box-shadow: 0 -10px 25px rgba(0,0,0,0.1); }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
         .modal-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 800; margin-bottom: 14px; }
         .admin-card-item { background: var(--surface2); border-radius: 12px; padding: 10px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
         .admin-actions { display: flex; gap: 6px; }
         .admin-btn { border: none; padding: 7px 10px; border-radius: 8px; color: white; cursor: pointer; font-size: 13px; }
-        .form-input { width: 100%; padding: 12px 13px; margin-bottom: 8px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; }
-        .form-input:focus { border-color: var(--primary); }
-        .btn-primary { flex: 2; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-family: 'Sora', sans-serif; font-weight: 700; cursor: pointer; }
-        .btn-secondary { flex: 1; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .form-input { width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; outline: none; transition: all 0.2s; }
+        .form-input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 4px var(--primary-dim); }
+        .btn-primary { flex: 2; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-family: 'Sora', sans-serif; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-secondary { flex: 1; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); border-radius: 14px; font-weight: 700; cursor: pointer; }
         .btn-cancel-text { width: 100%; background: none; border: none; color: var(--text-muted); padding: 14px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .option-item { padding: 13px; border-radius: 12px; background: var(--surface2); border: 1.5px solid var(--border); margin-bottom: 8px; font-family: 'Sora', sans-serif; font-weight: 700; text-align: center; cursor: pointer; font-size: 0.9rem; transition: background 0.15s, border-color 0.15s; }
         .option-item:hover { border-color: var(--primary); background: var(--primary-dim); }
@@ -189,341 +206,311 @@
 
         /* PRINT */
         @media print {
-            header, .nav-tabs, .toolbar, .search-wrap, .progress-wrap, .stats-bar,
-            .btn-group, .oferta-btn, .counter-box, .fechamento, .fab-admin,
-            #modalOverlay, #modoRapidoOverlay, .toast-success, .date-badge,
-            .icon-btn, .header-actions { display: none !important; }
-            body { padding: 0; background: white; color: black; }
-            .print-header { display: block !important; text-align: center; padding: 8px 0 14px; border-bottom: 2px solid #1e1b4b; margin-bottom: 14px; }
-            .print-header h2 { font-size: 1.1rem; font-family: 'Sora', sans-serif; color: #1e1b4b; margin-bottom: 3px; }
-            .print-header p { font-size: 0.78rem; color: #555; }
-            .aluno-card { border: 1px solid #ddd; border-radius: 6px; padding: 7px 10px; margin-bottom: 4px; page-break-inside: avoid; box-shadow: none; display: flex; justify-content: space-between; align-items: center; }
-            .aluno-card::before { display: none; }
-            .card-name { font-size: 0.82rem; }
-            .card-sub { font-size: 0.68rem; }
-            .print-status { display: inline-block !important; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; margin-left: 8px; }
-            .print-status.P { background: #d1fae5; color: #059669; }
-            .print-status.A { background: #fee2e2; color: #dc2626; }
-            .print-status.V { background: #fef3c7; color: #d97706; }
+            header, .stats-bar, .nav-tabs, .toolbar, .search-wrap, .progress-wrap, .fab-admin, .nav-btn, .btn-group, .oferta-btn, .fechamento, #toast { display: none !important; }
+            body { padding: 0; background: white; }
+            .aluno-card { break-inside: avoid; border: 1px solid #eee; box-shadow: none; }
+            #printHeader { display: block !important; text-align: center; margin-bottom: 20px; }
         }
-        .print-header { display: none; }
-        .print-status { display: none; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
-<div id="toast" class="toast-success"></div>
+<div id="main-content">
+    <div id="printHeader" style="display:none;">
+        <h2 style="color:#4f46e5; font-family:'Sora';">EBD Digital · Nova Suíça</h2>
+        <p id="printMeta" style="font-size:12px; color:#666;"></p>
+    </div>
+
+    <header>
+        <div class="header-row">
+            <div class="logo-wrap"><canvas id="miniChart"></canvas></div>
+            <div class="header-info">
+                <div class="church-name">EBD NOVA SUÍÇA</div>
+                <div class="date-row">
+                    <span class="date-text">Aula de hoje:</span>
+                    <span class="date-badge" id="data-label" onclick="document.getElementById('dataInput').showPicker()">--/--/----</span>
+                    <input type="date" id="dataInput" style="display:none" onchange="mudarData(this.value)">
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-badge" id="userBadge" onclick="mudarUsuario()">👤 Usuário</div>
+                <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+                <button class="icon-btn" onclick="imprimirChamada()">🖨️</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-pill s-p"><div class="stat-num" id="stat-p">0</div><div class="stat-lbl">Pres.</div></div>
+        <div class="stat-pill s-a"><div class="stat-num" id="stat-a">0</div><div class="stat-lbl">Aus.</div></div>
+        <div class="stat-pill s-v"><div class="stat-num" id="stat-v">0</div><div class="stat-lbl">Vis.</div></div>
+    </div>
+
+    <div class="nav-tabs">
+        <button id="btn-chamada" class="nav-btn active" onclick="switchTab('chamada')">📋 CHAMADA</button>
+        <button id="btn-caixa" class="nav-btn" onclick="switchTab('caixa')">💰 CAIXA</button>
+        <button id="btn-ranking" class="nav-btn" onclick="switchTab('ranking')">🏆 RANKING</button>
+        <button id="btn-historico" class="nav-btn" onclick="switchTab('historico')">📅 HISTÓRICO</button>
+    </div>
+
+    <div id="tab-chamada">
+        <div class="toolbar">
+            <button class="tool-btn success-btn" onclick="abrirModoRapido()">⚡ MODO RÁPIDO</button>
+            <button class="tool-btn" onclick="confirmarAcao('LIMPAR_CHAMADA')">🧹 LIMPAR</button>
+        </div>
+
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-box" placeholder="Buscar aluno ou apelido..." oninput="render(this.value)">
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress-label"><span>Progresso da Chamada</span> <span id="prog-txt">0%</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+        </div>
+
+        <div id="lista-alunos"></div>
+
+        <div class="fechamento">
+            <div class="fechamento-title">📝 Fechamento da Aula</div>
+            <div class="fech-grid">
+                <div>
+                    <span class="fech-label">Professor Adultos</span>
+                    <div class="custom-select" id="btnProfA" onclick="abrirSeletor('profA')"><span>Selecionar</span> ▾</div>
+                </div>
+                <div>
+                    <span class="fech-label">Professor Jovens</span>
+                    <div class="custom-select" id="btnProfJ" onclick="abrirSeletor('profJ')"><span>Selecionar</span> ▾</div>
+                </div>
+            </div>
+            <div class="fech-grid">
+                <div>
+                    <span class="fech-label">Bíblias</span>
+                    <input type="number" id="bib" placeholder="0">
+                </div>
+                <div>
+                    <span class="fech-label">Revistas</span>
+                    <input type="number" id="rev" placeholder="0">
+                </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <span class="fech-label">Visitantes Externos (Qtd)</span>
+                <input type="number" id="qtdVisitantes" placeholder="0">
+            </div>
+            <div style="margin-bottom:12px;">
+                <span class="fech-label">Nomes dos Visitantes</span>
+                <textarea id="nomesVisitantes" rows="2" placeholder="Ex: Maria, João..."></textarea>
+            </div>
+            <button class="btn-confirm" style="background:#fbbf24; color:#1e1b4b;" onclick="confirmarAcao('ENVIAR_RELATORIO')">🚀 ENVIAR PARA NUVEM</button>
+        </div>
+    </div>
+
+    <div id="tab-ranking" style="display:none;">
+        <div class="modal-title">🏆 Ranking de Assiduidade</div>
+        <div id="ranking-lista"></div>
+    </div>
+
+    <div id="tab-historico" style="display:none;">
+        <div class="modal-title">📅 Histórico de Chamadas</div>
+        <div id="historico-lista"></div>
+    </div>
+
+    <div id="tab-caixa" style="display:none;">
+        <div class="card-caixa">
+            <div class="saldo-label">Saldo em Caixa</div>
+            <div class="saldo-val" id="caixa-saldo">R$ 0,00</div>
+        </div>
+        <div class="btn-grid">
+            <button class="btn-fin" style="background:var(--success);" onclick="abrirFinanceiro('ENTRADA')">➕ ENTRADA</button>
+            <button class="btn-fin" style="background:var(--danger);" onclick="abrirFinanceiro('SAIDA')">➖ SAÍDA</button>
+        </div>
+        <div class="modal-title">Últimas Movimentações</div>
+        <div id="caixa-historico"></div>
+    </div>
+
+    <button class="fab-admin" onclick="abrirAdmin()">⚙️</button>
+</div>
+
+<!-- OVERLAY MODAL -->
+<div id="modalOverlay" onclick="handleOverlayClick(event)">
+    <!-- MODAL USUÁRIO (NOVO) -->
+    <div class="modal-box" id="modalUsuario" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="confirm-icon">👤</div>
+        <div class="modal-title" style="text-align:center;">Identificação</div>
+        <div class="confirm-desc">Como devemos te chamar hoje? Isso aparecerá no histórico de envios.</div>
+        <input type="text" id="inputUsuarioNome" class="form-input" placeholder="Seu nome (ex: Janaína)">
+        <button class="btn-primary" style="width:100%;" onclick="salvarNovoUsuario()">CONFIRMAR</button>
+        <button class="btn-cancel-text" id="btnFecharUserModal" onclick="fecharModal()">CANCELAR</button>
+    </div>
+
+    <!-- MODAL ADMIN -->
+    <div class="modal-box" id="modalAdmin" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Gerenciar Membros</div>
+        <div style="background:var(--surface2); padding:15px; border-radius:16px; margin-bottom:15px; border:1px solid var(--border);">
+            <input type="hidden" id="editIndex" value="-1">
+            <input type="text" id="membroNome" class="form-input" placeholder="NOME COMPLETO">
+            <input type="text" id="membroApelido" class="form-input" placeholder="APELIDO / COMO É CHAMADO">
+            <div style="display:flex; gap:8px;">
+                <button class="btn-primary" id="btnSalvarMembro" onclick="salvarMembro()">SALVAR</button>
+                <button class="btn-secondary" id="btnCancelaEdit" style="display:none;" onclick="limparFormAdmin()">CANCELAR</button>
+            </div>
+        </div>
+        <div id="listaAdminItems"></div>
+        <button class="btn-cancel-text" onclick="fecharModal()">FECHAR</button>
+    </div>
+
+    <!-- MODAL PICKER -->
+    <div class="modal-box" id="modalPicker" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="pickerTitle">Selecionar</div>
+        <div id="pickerOptions"></div>
+        <button class="btn-cancel-text" onclick="fecharModal()">CANCELAR</button>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div class="modal-box" id="modalConfirm" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="confirm-icon" id="confirmIcon">🚀</div>
+        <div class="modal-title" id="confirmTitle" style="text-align:center; margin-bottom:8px;">Confirmar Envio?</div>
+        <div class="confirm-desc" id="confirmDesc">Os dados serão enviados para a planilha oficial.</div>
+        <button class="btn-confirm" id="btnConfirmarFinal" style="background:var(--success);" onclick="executarAcao()">CONFIRMAR</button>
+        <button class="btn-cancel-text" onclick="fecharModal()">VOLTAR</button>
+    </div>
+
+    <!-- MODAL DETALHES HISTÓRICO -->
+    <div class="modal-box" id="modalHistDetalhes" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="histDetalhesTitulo">Detalhes</div>
+        <div id="histDetalhesCorpo" style="max-height:60vh; overflow-y:auto; padding-right:5px;"></div>
+        <button class="btn-cancel-text" onclick="fecharModal()">FECHAR</button>
+    </div>
+
+    <!-- MODAL FINANCEIRO -->
+    <div class="modal-box" id="modalFin" style="display:none;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="fin-titulo">Registro</div>
+        <input type="text" id="fin-desc" placeholder="Ex: Oferta da aula" class="form-input">
+        <input type="number" id="fin-valor" placeholder="Valor R$" class="form-input">
+        <button class="btn-confirm" id="btnConfirmarFin" style="background:var(--success);">CONFIRMAR</button>
+        <button class="btn-cancel-text" onclick="fecharModal()">CANCELAR</button>
+    </div>
+</div>
 
 <!-- MODO RÁPIDO -->
 <div id="modoRapidoOverlay">
     <button class="rapido-close" onclick="fecharModoRapido()">✕</button>
-    <div class="rapido-progress" id="rapidoProgress"></div>
-    <div class="rapido-nome" id="rapidoNome"></div>
-    <div class="rapido-apelido" id="rapidoApelido"></div>
-    <div class="rapido-btns" id="rapidoBtns">
-        <button class="rapido-btn p" onclick="votarRapido('P')">✓ PRESENTE</button>
-        <button class="rapido-btn a" onclick="votarRapido('A')">✗ AUSENTE</button>
-        <button class="rapido-btn v" onclick="votarRapido('V')">👋 VISITANTE</button>
-    </div>
+    <div class="rapido-progress" id="rapidoProgress">1 de 20</div>
+    <div class="rapido-nome" id="rapidoNome">NOME DO ALUNO</div>
+    <div class="rapido-apelido" id="rapidoApelido">Apelido</div>
+    <div class="rapido-btns" id="rapidoBtns"></div>
     <div class="rapido-nav">
         <button class="rapido-nav-btn" onclick="navegarRapido(-1)">← Anterior</button>
         <button class="rapido-nav-btn" onclick="navegarRapido(1)">Próximo →</button>
     </div>
 </div>
 
-<!-- PRINT HEADER -->
-<div class="print-header" id="printHeader">
-    <h2>AD Belém · Nova Suíça — Chamada EBD</h2>
-    <p id="printMeta"></p>
-</div>
-
-<header>
-    <div class="header-row">
-        <div class="logo-wrap">
-            <canvas id="miniChart" width="50" height="50"></canvas>
-        </div>
-        <div class="header-info">
-            <div class="church-name">AD Belém · Nova Suíça</div>
-            <div class="date-row">
-                <span class="date-text" id="data-label">Carregando...</span>
-                <span class="date-badge" onclick="document.getElementById('dataManual').showPicker()">📅 TROCAR DATA</span>
-                <input type="date" id="dataManual" style="position:absolute; opacity:0; pointer-events:none;" onchange="mudarData(this.value)">
-            </div>
-        </div>
-        <div class="header-actions">
-            <button class="icon-btn" onclick="imprimirChamada()" title="Exportar PDF">🖨️</button>
-            <button class="icon-btn" onclick="toggleTheme()" title="Tema">🌓</button>
-        </div>
-    </div>
-</header>
-
-<div class="stats-bar">
-    <div class="stat-pill s-p"><div class="stat-num" id="cnt-p">0</div><div class="stat-lbl">Presentes</div></div>
-    <div class="stat-pill s-a"><div class="stat-num" id="cnt-a">0</div><div class="stat-lbl">Ausentes</div></div>
-    <div class="stat-pill s-v"><div class="stat-num" id="cnt-v">0</div><div class="stat-lbl">Visitantes</div></div>
-</div>
-
-<div class="nav-tabs">
-    <button id="btn-chamada" class="nav-btn active" onclick="switchTab('chamada')">📋 CHAMADA</button>
-    <button id="btn-ranking" class="nav-btn" onclick="switchTab('ranking')">🏆 RANKING</button>
-    <button id="btn-historico" class="nav-btn" onclick="switchTab('historico')">📅 HISTÓRICO</button>
-</div>
-
-<!-- TAB CHAMADA -->
-<div id="tab-chamada">
-    <div class="toolbar">
-        <button class="tool-btn success-btn" onclick="marcarTodosPresentes()">✓ Marcar todos presentes</button>
-        <button class="tool-btn" onclick="abrirModoRapido()">⚡ Modo rápido</button>
-    </div>
-    <div class="progress-wrap">
-        <div class="progress-label">
-            <span>Progresso da chamada</span>
-            <span id="progress-text">0 / 0 marcados</span>
-        </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
-    </div>
-    <div class="search-wrap">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="busca" class="search-box" placeholder="Buscar irmão..." onkeyup="render()">
-    </div>
-    <div id="lista"></div>
-    <div class="fechamento">
-        <div class="fechamento-title">📊 Fechamento da Aula</div>
-        <div class="fech-grid">
-            <div><span class="fech-label">Prof. Adultos</span><div id="btnProfA" class="custom-select" onclick="abrirSeletor('profA')"><span>PASTOR JOSÉ</span> ▾</div></div>
-            <div><span class="fech-label">Prof. Jovens</span><div id="btnProfJ" class="custom-select" onclick="abrirSeletor('profJ')"><span>ADONIAS</span> ▾</div></div>
-        </div>
-        <div class="fech-grid">
-            <div><span class="fech-label">📖 Bíblias</span><input type="number" id="bib" value="0" min="0"></div>
-            <div><span class="fech-label">📒 Revistas</span><input type="number" id="rev" value="0" min="0"></div>
-        </div>
-        <span class="fech-label">👥 Visitantes externos</span>
-        <input type="number" id="qtdVisitantes" value="0" min="0" style="margin-bottom:8px;">
-        <textarea id="nomesVisitantes" rows="2" placeholder="Nomes dos visitantes novos..."></textarea>
-        <button class="btn-enviar" onclick="confirmarAcao('ENVIAR_RELATORIO')">🚀 ENVIAR PARA PLANILHA</button>
-        <button class="btn-limpar" onclick="confirmarAcao('LIMPAR_CHAMADA')">🧹 Limpar chamada local</button>
-    </div>
-</div>
-
-<!-- TAB RANKING -->
-<div id="tab-ranking" style="display:none;"><div id="ranking-lista"><div class="rank-loading">🏆 Carregando ranking...</div></div></div>
-
-<!-- TAB HISTÓRICO -->
-<div id="tab-historico" style="display:none;"><div id="historico-lista"></div></div>
-
-<button class="fab-admin" onclick="abrirAdmin()">⚙️</button>
-
-<!-- MODAIS -->
-<div id="modalOverlay" onclick="handleOverlayClick(event)">
-
-    <div id="modalPicker" class="modal-box" style="display:none;">
-        <div class="modal-handle"></div>
-        <div class="modal-title" id="pickerTitle">Selecionar</div>
-        <div id="pickerOptions"></div>
-        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
-    </div>
-
-    <div id="modalAdmin" class="modal-box" style="display:none;">
-        <div class="modal-handle"></div>
-        <div class="modal-title">Gestão de Membros</div>
-        <div style="background:var(--surface2); padding:14px; border-radius:14px; margin-bottom:14px; border:1px solid var(--border);">
-            <input type="hidden" id="editIndex" value="-1">
-            <input type="text" id="membroNome" placeholder="NOME COMPLETO" class="form-input">
-            <input type="text" id="membroApelido" placeholder="Apelido / Cargo" class="form-input">
-            <div style="display:flex; gap:8px;">
-                <button id="btnSalvarMembro" class="btn-primary" onclick="salvarMembro()">SALVAR</button>
-                <button id="btnCancelaEdit" class="btn-secondary" onclick="limparFormAdmin()" style="display:none;">✕</button>
-            </div>
-        </div>
-        <div id="listaAdminItems"></div>
-        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
-    </div>
-
-    <div id="modalConfirm" class="modal-box" style="display:none; text-align:center;">
-        <div class="modal-handle"></div>
-        <div class="confirm-icon" id="confirmIcon">❓</div>
-        <div class="modal-title" id="confirmTitle">Confirmar?</div>
-        <p class="confirm-desc" id="confirmDesc"></p>
-        <button id="btnConfirmarFinal" class="btn-confirm">CONFIRMAR</button>
-        <button onclick="fecharModal()" class="btn-cancel-text">Cancelar</button>
-    </div>
-
-    <div id="modalHistDetalhes" class="modal-box" style="display:none;">
-        <div class="modal-handle"></div>
-        <div class="modal-title" id="histDetalhesTitulo">Detalhes</div>
-        <div id="histDetalhesCorpo"></div>
-        <button onclick="fecharModal()" class="btn-cancel-text">Fechar</button>
-    </div>
-</div>
+<div id="toast" class="toast-success">✓ AÇÃO REALIZADA</div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec";
+    const SCRIPT_URL = "SUA_URL_DO_WEB_APP_AQUI"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
-    // ── PWA MANIFEST ──────────────────────────────────────────────────────────
-    const manifestData = {
-        name: "EBD Digital · Nova Suíça", short_name: "EBD Nova Suíça",
-        start_url: "./", display: "standalone",
-        background_color: "#f8f7ff", theme_color: "#4f46e5",
-        icons: [
-            { src: "https://placehold.co/192x192/4f46e5/ffffff?text=EBD", sizes: "192x192", type: "image/png" },
-            { src: "https://placehold.co/512x512/4f46e5/ffffff?text=EBD", sizes: "512x512", type: "image/png" }
-        ]
-    };
-    const mBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-    document.getElementById('pwa-manifest').href = URL.createObjectURL(mBlob);
-
-    // ── SERVICE WORKER (offline) ───────────────────────────────────────────────
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE='ebd-v2';
-            self.addEventListener('install', e => e.waitUntil(
-                caches.open(CACHE).then(c => c.addAll(['./','https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap','https://cdn.jsdelivr.net/npm/chart.js']).catch(()=>{}))
-            ));
-            self.addEventListener('fetch', e => e.respondWith(
-                caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('', {status: 503})))
-            ));
-        `;
-        const swBlob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
-    }
-
-    // ── DADOS ─────────────────────────────────────────────────────────────────
-    let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
-        { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
-        { nome: "ALAN QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "ANTONIA APARECIDA FUZATO", apelido: "Irmã Tânia", oculto: false },
-        { nome: "APARECIDA GRANADA", apelido: "Irmã Cida (Edirlei)", oculto: false },
-        { nome: "CREUZA QUINTELA DA SILVA", apelido: "Membro", oculto: false },
-        { nome: "CRISTINA", apelido: "Membro", oculto: false },
-        { nome: "EDERLEI APARECIDO", apelido: "Membro", oculto: false },
-        { nome: "ELISANGELA SILVEIRA", apelido: "Membro", oculto: false },
-        { nome: "ELZA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ENZO GABRIEL", apelido: "Membro", oculto: false },
-        { nome: "FERNANDA DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "GINAUSIO CORREIA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ISABELLE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "ISAQUE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "JANAINA", apelido: "Membro", oculto: false },
-        { nome: "JEFERSON BATISTA", apelido: "Membro", oculto: false },
-        { nome: "JENIFER MONIQUE", apelido: "Membro", oculto: false },
-        { nome: "JOSE GERISMAR ONIAS", apelido: "Pastor", oculto: false },
-        { nome: "JOSELMA QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "JUNIOR DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "LUCAS HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "LUIZ CARLOS SABINO", apelido: "Irmão Luiz", oculto: false },
-        { nome: "MANOELINA FUZATO", apelido: "Irmã Nela", oculto: false },
-        { nome: "MARIA DA CRUZ CONCEIÇÃO", apelido: "Membro", oculto: false },
-        { nome: "MARIANA", apelido: "Membro", oculto: false },
-        { nome: "MAYCON APARECIDO CARVALHO", apelido: "Membro", oculto: false },
-        { nome: "NATALINO GERMANO", apelido: "Membro", oculto: false },
-        { nome: "OZIEL DA FONSECA", apelido: "Membro", oculto: false },
-        { nome: "PEDRO HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "VICTOR HUGO", apelido: "Membro", oculto: false },
-        { nome: "GERALDO", apelido: "Membro", oculto: false },
-        { nome: "VIRGÍNIA", apelido: "Membro", oculto: false }
-    ];
-
-    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36')) || {};
+    let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
+    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
+    let dataAula = new Date().toLocaleDateString('pt-BR');
+    let profA = "Selecionar", profJ = "Selecionar";
     let acaoPendente = null, indexPendente = null;
-    let profA = "PASTOR JOSÉ", profJ = "ADONIAS";
+    let usuarioAtual = localStorage.getItem('ebd_user_name') || null;
 
-    // ── AUTO-DATA: detecta domingo e pré-seleciona ────────────────────────────
-    function calcularDataAula() {
-        const hoje = new Date();
-        if (hoje.getDay() === 0) return hoje.toLocaleDateString('pt-BR'); // é domingo
-        const ultimo = new Date(hoje);
-        ultimo.setDate(hoje.getDate() - hoje.getDay()); // volta ao último domingo
-        return ultimo.toLocaleDateString('pt-BR');
-    }
-    let dataAula = calcularDataAula();
+    const haptic = (s) => { if (window.navigator.vibrate) { const m = { light: 10, medium: 30, success: [30, 50, 30] }; window.navigator.vibrate(m[s] || 0); } };
+    const capitalize = (s) => s.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 
-    // ── HAPTIC ────────────────────────────────────────────────────────────────
-    function haptic(type) {
-        if (!navigator.vibrate) return;
-        if (type === 'light') navigator.vibrate(25);
-        else if (type === 'medium') navigator.vibrate(45);
-        else if (type === 'success') navigator.vibrate([30, 50, 30]);
+    // ── IDENTIFICAÇÃO DE USUÁRIO ──────────────────────────────────────────────
+    function inicializarUsuario() {
+        if (!usuarioAtual) {
+            abrirModalUsuario(false);
+        } else {
+            document.getElementById('userBadge').textContent = `👤 ${usuarioAtual}`;
+        }
     }
 
-    // ── CAPITALIZE ────────────────────────────────────────────────────────────
-    function capitalize(str) {
-        return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    function abrirModalUsuario(podeFechar = true) {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalUsuario').style.display = 'block';
+        document.getElementById('btnFecharUserModal').style.display = podeFechar ? 'block' : 'none';
+        document.getElementById('inputUsuarioNome').value = usuarioAtual || '';
+        document.body.classList.add('modal-open');
+    }
+
+    function salvarNovoUsuario() {
+        const nome = document.getElementById('inputUsuarioNome').value.trim();
+        if (!nome) return alert("Por favor, digite seu nome.");
+        
+        usuarioAtual = capitalize(nome);
+        localStorage.setItem('ebd_user_name', usuarioAtual);
+        document.getElementById('userBadge').textContent = `👤 ${usuarioAtual}`;
+        fecharModal();
+        showToast(`Bem-vindo(a), ${usuarioAtual}!`);
+    }
+
+    function mudarUsuario() {
+        abrirModalUsuario(true);
     }
 
     // ── RENDER ────────────────────────────────────────────────────────────────
-    function render() {
-        const container = document.getElementById('lista');
-        const busca = document.getElementById('busca').value.toLowerCase();
-        container.innerHTML = '';
-        let p = 0, a = 0, v = 0, total = 0, marcados = 0;
-
-        db.sort((x, y) => x.nome.localeCompare(y.nome)).filter(m => !m.oculto).forEach(m => {
-            if (busca && !m.nome.toLowerCase().includes(busca) && !m.apelido.toLowerCase().includes(busca)) return;
-            const st = presencas[m.nome]?.status;
-            total++; if (st) marcados++;
-            if (st === 'P') p++; if (st === 'A') a++; if (st === 'V') v++;
-
-            const card = document.createElement('div');
-            card.className = `aluno-card ${st === 'P' ? 'presente' : st === 'A' ? 'ausente' : st === 'V' ? 'visitante-cor' : ''}`;
-            const ofertou = presencas[m.nome]?.ofertou;
-            const perguntas = presencas[m.nome]?.perguntas || 0;
-            card.innerHTML = `
-              <div class="card-top">
-                <div>
-                  <div class="card-name">${capitalize(m.nome)}<span class="print-status ${st||''}">${st||'—'}</span></div>
-                  <div class="card-sub">${m.apelido}</div>
+    function render(filter = "") {
+        const container = document.getElementById('lista-alunos');
+        const f = filter.toLowerCase();
+        const list = db.filter(m => !m.oculto && (m.nome.toLowerCase().includes(f) || m.apelido.toLowerCase().includes(f))).sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        container.innerHTML = list.map(m => {
+            const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
+            const statusClass = p.status === 'P' ? 'presente' : (p.status === 'V' ? 'visitante-cor' : 'ausente');
+            return `
+              <div class="aluno-card ${statusClass}">
+                <div class="card-top">
+                  <div style="flex:1">
+                    <div class="card-name">${capitalize(m.nome)}</div>
+                    <div class="card-sub">${m.apelido}</div>
+                  </div>
+                  <button class="oferta-btn ${p.ofertou ? 'ativo' : ''}" onclick="toggleOferta('${m.nome}')">💰</button>
                 </div>
-                <button onclick="toggleOferta('${m.nome}')" class="oferta-btn ${ofertou ? 'ativo' : ''}" title="Oferta">🪙</button>
-              </div>
-              <div class="btn-group">
-                <button class="btn btn-p ${st === 'P' ? 'active' : ''}" onclick="votar('${m.nome}','P')">✓ Pres.</button>
-                <button class="btn btn-a ${st === 'A' ? 'active' : ''}" onclick="votar('${m.nome}','A')">✗ Aus.</button>
-                <button class="btn btn-v ${st === 'V' ? 'active' : ''}" onclick="votar('${m.nome}','V')">👋 Visit.</button>
-                <div class="counter-box">
-                  <button class="counter-btn" onclick="addPergunta('${m.nome}',-1)">−</button>
-                  <span class="counter-val">${perguntas}❓</span>
-                  <button class="counter-btn" onclick="addPergunta('${m.nome}',1)">+</button>
+                <div class="btn-group">
+                  <button class="btn btn-p ${p.status === 'P' ? 'active' : ''}" onclick="setStatus('${m.nome}','P')">P</button>
+                  <button class="btn btn-a ${p.status === 'A' ? 'active' : ''}" onclick="setStatus('${m.nome}','A')">F</button>
+                  <button class="btn btn-v ${p.status === 'V' ? 'active' : ''}" onclick="setStatus('${m.nome}','V')">V</button>
+                  <div class="counter-box">
+                    <button class="counter-btn" onclick="addPerg('${m.nome}',-1)">-</button>
+                    <span class="counter-val">${p.perguntas} pt</span>
+                    <button class="counter-btn" onclick="addPerg('${m.nome}',1)">+</button>
+                  </div>
                 </div>
               </div>`;
-            container.appendChild(card);
-        });
-
-        if (!total && busca) container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado para "<b>${busca}</b>"</p></div>`;
-
-        document.getElementById('cnt-p').textContent = p;
-        document.getElementById('cnt-a').textContent = a;
-        document.getElementById('cnt-v').textContent = v;
-
-        const pct = total > 0 ? Math.round((marcados / total) * 100) : 0;
-        document.getElementById('progress-fill').style.width = pct + '%';
-        document.getElementById('progress-text').textContent = `${marcados} / ${total} marcados`;
-
-        if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update('none'); }
+        }).join('');
+        updateStats();
     }
 
-    // ── MARCAR TODOS ──────────────────────────────────────────────────────────
-    function marcarTodosPresentes() {
-        haptic('medium');
-        db.filter(m => !m.oculto).forEach(m => {
-            if (!presencas[m.nome]) presencas[m.nome] = { perguntas: 0, ofertou: false };
-            presencas[m.nome].status = 'P';
-        });
-        save(); render();
-        showToast('✓ Todos marcados como presentes');
-    }
+    function setStatus(nome, s) { haptic('light'); if (!presencas[nome]) presencas[nome] = { perguntas: 0, ofertou: false }; presencas[nome].status = s; save(); render(); }
+    function toggleOferta(nome) { haptic('light'); if (!presencas[nome]) presencas[nome] = { status: 'A', perguntas: 0, ofertou: false }; presencas[nome].ofertou = !presencas[nome].ofertou; save(); render(); }
+    function addPerg(nome, v) { haptic('light'); if (!presencas[nome]) presencas[nome] = { status: 'A', perguntas: 0, ofertou: false }; presencas[nome].perguntas = Math.max(0, presencas[nome].perguntas + v); save(); render(); }
 
-    // ── VOTAR ─────────────────────────────────────────────────────────────────
-    function votar(n, s) {
-        haptic('light');
-        if (!presencas[n]) presencas[n] = { perguntas: 0, ofertou: false };
-        presencas[n].status = s; save(); render();
+    function updateStats() {
+        const total = db.filter(m => !m.oculto).length;
+        const p = Object.values(presencas).filter(x => x.status === 'P').length;
+        const a = total - p;
+        const v = Object.values(presencas).filter(x => x.status === 'V').length;
+        document.getElementById('stat-p').textContent = p;
+        document.getElementById('stat-a').textContent = a;
+        document.getElementById('stat-v').textContent = v;
+        const perc = total > 0 ? Math.round((p / total) * 100) : 0;
+        document.getElementById('prog-txt').textContent = perc + '%';
+        document.getElementById('prog-fill').style.width = perc + '%';
+        if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update(); }
     }
-    function toggleOferta(n) { if (!presencas[n]) presencas[n] = { status: null, perguntas: 0, ofertou: false }; presencas[n].ofertou = !presencas[n].ofertou; save(); render(); }
-    function addPergunta(n, q) { if (!presencas[n]) presencas[n] = { status: null, perguntas: 0, ofertou: false }; presencas[n].perguntas = Math.max(0, (presencas[n].perguntas || 0) + q); save(); render(); }
 
     // ── MODO RÁPIDO ───────────────────────────────────────────────────────────
-    let rapidoLista = [], rapidoIdx = 0;
-
+    let rapidoIdx = 0, rapidoLista = [];
     function abrirModoRapido() {
         haptic('medium');
         rapidoLista = db.filter(m => !m.oculto).sort((a, b) => a.nome.localeCompare(b.nome));
@@ -563,58 +550,45 @@
     // ── DATA ──────────────────────────────────────────────────────────────────
     function mudarData(v) { const p = v.split('-'); dataAula = `${p[2]}/${p[1]}/${p[0]}`; document.getElementById('data-label').textContent = dataAula; }
 
-    // ── HISTÓRICO ─────────────────────────────────────────────────────────────
-    function salvarHistorico(payload) {
-        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
-        hist.unshift({
-            data: payload.aula.data, profA: payload.aula.pA, profJ: payload.aula.pJ,
-            presentes: payload.frequencia.filter(f => f.status === 'P').length,
-            ausentes: payload.frequencia.filter(f => f.status === 'A').length,
-            visitantes: payload.frequencia.filter(f => f.status === 'V').length,
-            frequencia: payload.frequencia, ts: Date.now()
-        });
-        localStorage.setItem('ebd_historico', JSON.stringify(hist.slice(0, 20)));
-    }
-
-    function renderHistorico() {
-        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
+    // ── HISTÓRICO NA NUVEM ────────────────────────────────────────────────────
+    async function renderHistorico() {
         const container = document.getElementById('historico-lista');
-        if (!hist.length) { container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.<br>O histórico aparece aqui após o envio.</p></div>'; return; }
-        container.innerHTML = hist.map((h, i) => `
-          <div class="hist-card" onclick="verDetalhesHistorico(${i})">
-            <div class="hist-date">📅 ${h.data}</div>
-            <div class="hist-stats">
-              <span class="hist-badge p">✓ ${h.presentes} presentes</span>
-              <span class="hist-badge a">✗ ${h.ausentes} ausentes</span>
-              ${h.visitantes > 0 ? `<span class="hist-badge v">👋 ${h.visitantes} visitantes</span>` : ''}
-            </div>
-            <div class="hist-prof">Prof. Adultos: <b>${h.profA}</b> · Prof. Jovens: <b>${h.profJ}</b></div>
-          </div>`).join('');
+        container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico...</div>';
+        try {
+            const r = await fetch(SCRIPT_URL + "?action=getHistoricoNuvem");
+            const hist = await r.json();
+            if (!hist || !hist.length) { 
+                container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.<br>O histórico aparece aqui após o envio.</p></div>'; 
+                return; 
+            }
+            container.innerHTML = hist.map((h, i) => `
+              <div class="hist-card" onclick="verDetalhesHistorico(${i})">
+                <div class="hist-date">📅 ${h.data}</div>
+                <div class="hist-stats">
+                  <span class="hist-badge p">✓ ${h.presentes} presentes</span>
+                  <span class="hist-badge a">✗ ${h.ausentes} ausentes</span>
+                  ${h.visitantes > 0 ? `<span class="hist-badge v">👋 ${h.visitantes} visitantes</span>` : ''}
+                </div>
+                <div class="hist-prof">Prof. Adultos: <b>${h.profA}</b> · Prof. Jovens: <b>${h.profJ}</b></div>
+                <div class="hist-responsavel">👤 ${h.responsavel || 'Desconhecido'}</div>
+              </div>`).join('');
+        } catch (e) { 
+            container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.</p></div>'; 
+        }
     }
 
     function verDetalhesHistorico(i) {
-        const hist = JSON.parse(localStorage.getItem('ebd_historico') || '[]');
-        const h = hist[i];
-        document.getElementById('histDetalhesTitulo').textContent = `Chamada de ${h.data}`;
-        const pres = h.frequencia.filter(f => f.status === 'P').map(f => `<div style="padding:5px 0; border-bottom:1px solid var(--border); font-size:0.82rem; color:var(--success);">✓ ${capitalize(f.nome)}</div>`).join('');
-        const aus = h.frequencia.filter(f => f.status === 'A').map(f => `<div style="padding:5px 0; border-bottom:1px solid var(--border); font-size:0.82rem; color:var(--danger);">✗ ${capitalize(f.nome)}</div>`).join('');
-        document.getElementById('histDetalhesCorpo').innerHTML = `
-          <div style="margin-bottom:14px;">
-            <div style="font-size:0.72rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">Presentes (${h.presentes})</div>
-            ${pres || '<div style="font-size:0.8rem;color:var(--text-muted);">Nenhum</div>'}
-          </div>
-          <div>
-            <div style="font-size:0.72rem; font-weight:800; color:var(--danger); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">Ausentes (${h.ausentes})</div>
-            ${aus || '<div style="font-size:0.8rem;color:var(--text-muted);">Nenhum</div>'}
-          </div>`;
+        document.getElementById('histDetalhesTitulo').textContent = `Detalhes da Chamada`;
+        document.getElementById('histDetalhesCorpo').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Detalhes disponíveis na nuvem</div>';
         document.getElementById('modalOverlay').style.display = 'flex';
         document.getElementById('modalHistDetalhes').style.display = 'block';
+        document.body.classList.add('modal-open');
     }
 
     // ── EXPORTAR PDF ──────────────────────────────────────────────────────────
     function imprimirChamada() {
         haptic('medium');
-        document.getElementById('printMeta').textContent = `Data: ${dataAula} · Prof. Adultos: ${profA} · Prof. Jovens: ${profJ}`;
+        document.getElementById('printMeta').textContent = `Data: ${dataAula} · Prof. Adultos: ${profA} · Prof. Jovens: ${profJ} · Responsável: ${usuarioAtual}`;
         window.print();
     }
 
@@ -626,17 +600,25 @@
         t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
     }
 
-    // ── ENVIO ─────────────────────────────────────────────────────────────────
+    // ── ENVIO COM RESPONSÁVEL ─────────────────────────────────────────────────
     async function processarEnvio() {
         const btn = document.getElementById('btnConfirmarFinal');
         btn.textContent = "ENVIANDO..."; btn.disabled = true;
         const payload = {
-            aula: { data: dataAula, pA: profA, pJ: profJ, bib: document.getElementById('bib').value, rev: document.getElementById('rev').value, vExtQtd: document.getElementById('qtdVisitantes').value, vExtNomes: document.getElementById('nomesVisitantes').value },
+            aula: { 
+                data: dataAula, 
+                pA: profA, 
+                pJ: profJ, 
+                bib: document.getElementById('bib').value, 
+                rev: document.getElementById('rev').value, 
+                vExtQtd: document.getElementById('qtdVisitantes').value, 
+                vExtNomes: document.getElementById('nomesVisitantes').value 
+            },
+            responsavel: usuarioAtual,
             frequencia: db.map(m => ({ nome: m.nome, status: presencas[m.nome]?.status || 'A', perguntas: presencas[m.nome]?.perguntas || 0, ofertou: presencas[m.nome]?.ofertou || false }))
         };
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            salvarHistorico(payload);
             fecharModal();
             haptic('success');
             showToast('✓ CHAMADA ENVIADA COM SUCESSO');
@@ -648,7 +630,12 @@
     }
 
     // ── ADMIN ─────────────────────────────────────────────────────────────────
-    function abrirAdmin() { document.getElementById('modalOverlay').style.display = 'flex'; document.getElementById('modalAdmin').style.display = 'block'; listarAdmin(); }
+    function abrirAdmin() { 
+        document.getElementById('modalOverlay').style.display = 'flex'; 
+        document.getElementById('modalAdmin').style.display = 'block'; 
+        document.body.classList.add('modal-open');
+        listarAdmin(); 
+    }
     function listarAdmin() {
         document.getElementById('listaAdminItems').innerHTML = db.map((m, i) => `
           <div class="admin-card-item">
@@ -669,12 +656,17 @@
     function limparFormAdmin() { document.getElementById('editIndex').value = "-1"; document.getElementById('membroNome').value = ""; document.getElementById('membroApelido').value = ""; document.getElementById('btnSalvarMembro').textContent = "SALVAR"; document.getElementById('btnCancelaEdit').style.display = 'none'; }
 
     // ── MODAL ─────────────────────────────────────────────────────────────────
-    function fecharModal() { document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none'); document.getElementById('modalOverlay').style.display = 'none'; }
+    function fecharModal() { 
+        document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none'); 
+        document.getElementById('modalOverlay').style.display = 'none'; 
+        document.body.classList.remove('modal-open');
+    }
     function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) fecharModal(); }
 
     function abrirSeletor(tipo) {
         document.getElementById('modalOverlay').style.display = 'flex';
         document.getElementById('modalPicker').style.display = 'block';
+        document.body.classList.add('modal-open');
         const container = document.getElementById('pickerOptions');
         container.innerHTML = '';
         document.getElementById('pickerTitle').textContent = tipo === 'profA' ? "Professor Adultos" : "Professor Jovens";
@@ -695,10 +687,11 @@
         document.getElementById('modalOverlay').style.display = 'flex';
         document.getElementById('modalConfirm').style.display = 'block';
         document.getElementById('modalAdmin').style.display = 'none';
+        document.body.classList.add('modal-open');
         const btn = document.getElementById('btnConfirmarFinal');
-        if (t === 'ENVIAR_RELATORIO') { document.getElementById('confirmIcon').textContent = "🚀"; document.getElementById('confirmTitle').textContent = "Enviar relatório?"; document.getElementById('confirmDesc').textContent = "Os dados serão salvos na planilha oficial e no histórico local."; btn.style.background = "#059669"; }
-        if (t === 'LIMPAR_CHAMADA') { document.getElementById('confirmIcon').textContent = "🧹"; document.getElementById('confirmTitle').textContent = "Zerar chamada?"; document.getElementById('confirmDesc').textContent = "Todas as marcações de hoje serão apagadas."; btn.style.background = "#dc2626"; }
-        if (t === 'EXCLUIR_MEMBRO') { document.getElementById('confirmIcon').textContent = "🗑️"; document.getElementById('confirmTitle').textContent = "Excluir membro?"; document.getElementById('confirmDesc').textContent = `Remover ${capitalize(db[i].nome)} permanentemente?`; btn.style.background = "#dc2626"; }
+        if (t === 'ENVIAR_RELATORIO') { document.getElementById('confirmIcon').textContent = "🚀"; document.getElementById('confirmTitle').textContent = "Confirmar Envio?"; document.getElementById('confirmDesc').textContent = "Os dados serão enviados para a planilha oficial."; }
+        if (t === 'LIMPAR_CHAMADA') { document.getElementById('confirmIcon').textContent = "🧹"; document.getElementById('confirmTitle').textContent = "Limpar Tudo?"; document.getElementById('confirmDesc').textContent = "Isso apagará as presenças marcadas hoje."; }
+        if (t === 'EXCLUIR_MEMBRO') { document.getElementById('confirmIcon').textContent = "🗑️"; document.getElementById('confirmTitle').textContent = "Excluir Membro?"; document.getElementById('confirmDesc').textContent = "Esta ação não pode ser desfeita."; }
         btn.onclick = executarAcao;
     }
     function executarAcao() { if (acaoPendente === 'ENVIAR_RELATORIO') processarEnvio(); if (acaoPendente === 'LIMPAR_CHAMADA') { localStorage.removeItem('ebd_hoje_v36'); location.reload(); } if (acaoPendente === 'EXCLUIR_MEMBRO') { db.splice(indexPendente, 1); save(); fecharModal(); abrirAdmin(); render(); } }
@@ -714,25 +707,77 @@
             const r = await fetch(SCRIPT_URL + "?action=getRanking");
             const d = await r.json();
             if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
-            c.innerHTML = '';
-            d.forEach((m, i) => {
-                const card = document.createElement('div');
-                card.className = 'rank-card';
-                const pc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-                card.innerHTML = `<div class="rank-pos ${pc}">${i + 1}°</div><div class="rank-info"><div class="rank-name">${capitalize(m.nome)}</div><div class="rank-sub">${m.apelido || 'Membro'}</div></div><div class="rank-pts">${m.pontos} pts</div>`;
-                c.appendChild(card);
-            });
-        } catch (e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao buscar ranking.</p></div>'; }
+            c.innerHTML = d.map((m, i) => `
+                <div class="rank-card">
+                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
+                    <div class="rank-info">
+                        <div class="rank-name">${capitalize(m.nome)}</div>
+                        <div class="rank-sub">${m.presencas} presenças marcadas</div>
+                    </div>
+                    <div class="rank-pts">${m.pontos} pts</div>
+                </div>`).join('');
+        } catch(e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar ranking.</p></div>'; }
+    }
+
+    // ── CAIXA ─────────────────────────────────────────────────────────────────
+    function abrirFinanceiro(tipo) {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalFin').style.display = 'block';
+        document.body.classList.add('modal-open');
+        document.getElementById('fin-titulo').textContent = tipo === 'ENTRADA' ? '➕ Adicionar Dinheiro' : '➖ Retirar Dinheiro';
+        document.getElementById('btnConfirmarFin').style.background = tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('btnConfirmarFin').onclick = () => enviarFinanceiro(tipo);
+    }
+
+    async function enviarFinanceiro(tipo) {
+        const desc = document.getElementById('fin-desc').value;
+        const valor = document.getElementById('fin-valor').value;
+        if (!desc || !valor) return alert("Preencha todos os campos");
+        const payload = { tipo_post: "financeiro", tipo, descricao: desc, valor: parseFloat(valor), responsavel: usuarioAtual };
+        showToast("Salvando registro...");
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            fecharModal();
+            document.getElementById('fin-desc').value = '';
+            document.getElementById('fin-valor').value = '';
+            showToast("✓ Registro salvo com sucesso!");
+            fetchCaixa();
+        } catch(e) { alert("Erro ao salvar financeiro."); }
+    }
+
+    async function fetchCaixa() {
+        const container = document.getElementById('caixa-historico');
+        container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa...</div>';
+        try {
+            const r = await fetch(SCRIPT_URL + "?action=getCaixa");
+            const data = await r.json();
+            document.getElementById('caixa-saldo').textContent = `R$ ${data.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            if (!data.historico || !data.historico.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada.</p></div>';
+                return;
+            }
+            container.innerHTML = data.historico.map(h => `
+                <div class="mov-card" style="border-left-color: ${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
+                    <div class="mov-desc">
+                        <div class="mov-desc-titulo">${h.desc}</div>
+                        <div class="mov-desc-data">${h.data}</div>
+                    </div>
+                    <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
+                        ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${h.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </div>
+                </div>`).join('');
+        } catch(e) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar dados do caixa.</p></div>'; }
     }
 
     // ── TABS ──────────────────────────────────────────────────────────────────
     function switchTab(t) {
-        ['chamada', 'ranking', 'historico'].forEach(tab => {
+        ['chamada', 'ranking', 'historico', 'caixa'].forEach(tab => {
             document.getElementById('tab-' + tab).style.display = t === tab ? 'block' : 'none';
             document.getElementById('btn-' + tab).classList.toggle('active', t === tab);
         });
         if (t === 'ranking') fetchRanking();
         if (t === 'historico') renderHistorico();
+        if (t === 'caixa') fetchCaixa();
     }
 
     // ── SAVE ──────────────────────────────────────────────────────────────────
@@ -740,6 +785,7 @@
 
     // ── INIT ──────────────────────────────────────────────────────────────────
     window.onload = () => {
+        inicializarUsuario();
         document.body.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
         document.getElementById('data-label').textContent = dataAula;
         window.miniChart = new Chart(document.getElementById('miniChart'), {
