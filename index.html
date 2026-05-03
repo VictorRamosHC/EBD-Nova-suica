@@ -333,7 +333,7 @@
 
 <!-- OVERLAY MODAL -->
 <div id="modalOverlay" onclick="handleOverlayClick(event)">
-    <!-- MODAL USUÁRIO (NOVO) -->
+    <!-- MODAL USUÁRIO -->
     <div class="modal-box" id="modalUsuario" style="display:none;">
         <div class="modal-handle"></div>
         <div class="confirm-icon">👤</div>
@@ -414,6 +414,7 @@
 <div id="toast" class="toast-success">✓ AÇÃO REALIZADA</div>
 
 <script>
+    // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
     const SCRIPT_URL = "SUA_URL_DO_WEB_APP_AQUI"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
     let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
@@ -550,15 +551,24 @@
     // ── DATA ──────────────────────────────────────────────────────────────────
     function mudarData(v) { const p = v.split('-'); dataAula = `${p[2]}/${p[1]}/${p[0]}`; document.getElementById('data-label').textContent = dataAula; }
 
-    // ── HISTÓRICO NA NUVEM ────────────────────────────────────────────────────
+    // ── COMUNICAÇÃO COM PLANILHA ──────────────────────────────────────────────
+    async function apiFetch(params) {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("SUA_URL")) {
+            throw new Error("URL do Script não configurada.");
+        }
+        const url = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + params;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Erro na resposta do servidor.");
+        return await response.json();
+    }
+
     async function renderHistorico() {
         const container = document.getElementById('historico-lista');
         container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico...</div>';
         try {
-            const r = await fetch(SCRIPT_URL + "?action=getHistoricoNuvem");
-            const hist = await r.json();
+            const hist = await apiFetch("action=getHistoricoNuvem");
             if (!hist || !hist.length) { 
-                container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.<br>O histórico aparece aqui após o envio.</p></div>'; 
+                container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.</p></div>'; 
                 return; 
             }
             container.innerHTML = hist.map((h, i) => `
@@ -569,38 +579,55 @@
                   <span class="hist-badge a">✗ ${h.ausentes} ausentes</span>
                   ${h.visitantes > 0 ? `<span class="hist-badge v">👋 ${h.visitantes} visitantes</span>` : ''}
                 </div>
-                <div class="hist-prof">Prof. Adultos: <b>${h.profA}</b> · Prof. Jovens: <b>${h.profJ}</b></div>
+                <div class="hist-prof">Prof. Adultos: <b>${h.profA || h.pA || '-'}</b> · Prof. Jovens: <b>${h.profJ || h.pJ || '-'}</b></div>
                 <div class="hist-responsavel">👤 ${h.responsavel || 'Desconhecido'}</div>
               </div>`).join('');
         } catch (e) { 
-            container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.</p></div>'; 
+            container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.<br><small>${e.message}</small></p></div>`; 
         }
     }
 
-    function verDetalhesHistorico(i) {
-        document.getElementById('histDetalhesTitulo').textContent = `Detalhes da Chamada`;
-        document.getElementById('histDetalhesCorpo').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Detalhes disponíveis na nuvem</div>';
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('modalHistDetalhes').style.display = 'block';
-        document.body.classList.add('modal-open');
+    async function fetchRanking() {
+        const c = document.getElementById('ranking-lista');
+        c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
+        try {
+            const d = await apiFetch("action=getRanking");
+            if (!d || !d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
+            c.innerHTML = d.map((m, i) => `
+                <div class="rank-card">
+                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
+                    <div class="rank-info">
+                        <div class="rank-name">${capitalize(m.nome)}</div>
+                        <div class="rank-sub">${m.presencas} presenças marcadas</div>
+                    </div>
+                    <div class="rank-pts">${m.pontos} pts</div>
+                </div>`).join('');
+        } catch(e) { c.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar ranking.<br><small>${e.message}</small></p></div>`; }
     }
 
-    // ── EXPORTAR PDF ──────────────────────────────────────────────────────────
-    function imprimirChamada() {
-        haptic('medium');
-        document.getElementById('printMeta').textContent = `Data: ${dataAula} · Prof. Adultos: ${profA} · Prof. Jovens: ${profJ} · Responsável: ${usuarioAtual}`;
-        window.print();
+    async function fetchCaixa() {
+        const container = document.getElementById('caixa-historico');
+        container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa...</div>';
+        try {
+            const data = await apiFetch("action=getCaixa");
+            document.getElementById('caixa-saldo').textContent = `R$ ${data.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            if (!data.historico || !data.historico.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada.</p></div>';
+                return;
+            }
+            container.innerHTML = data.historico.map(h => `
+                <div class="mov-card" style="border-left-color: ${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
+                    <div class="mov-desc">
+                        <div class="mov-desc-titulo">${h.desc}</div>
+                        <div class="mov-desc-data">${h.data}</div>
+                    </div>
+                    <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
+                        ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${h.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </div>
+                </div>`).join('');
+        } catch(e) { container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar caixa.<br><small>${e.message}</small></p></div>`; }
     }
 
-    // ── TOAST ─────────────────────────────────────────────────────────────────
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg; t.style.display = 'block';
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
-    }
-
-    // ── ENVIO COM RESPONSÁVEL ─────────────────────────────────────────────────
     async function processarEnvio() {
         const btn = document.getElementById('btnConfirmarFinal');
         btn.textContent = "ENVIANDO..."; btn.disabled = true;
@@ -614,7 +641,7 @@
                 vExtQtd: document.getElementById('qtdVisitantes').value, 
                 vExtNomes: document.getElementById('nomesVisitantes').value 
             },
-            responsavel: usuarioAtual,
+            responsavel: usuarioAtual || "Desconhecido",
             frequencia: db.map(m => ({ nome: m.nome, status: presencas[m.nome]?.status || 'A', perguntas: presencas[m.nome]?.perguntas || 0, ofertou: presencas[m.nome]?.ofertou || false }))
         };
         try {
@@ -624,18 +651,56 @@
             showToast('✓ CHAMADA ENVIADA COM SUCESSO');
             setTimeout(() => { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }, 2500);
         } catch (e) {
-            alert("Erro ao enviar. Verifique sua conexão.");
+            alert("Erro ao enviar. Verifique sua conexão e o link do script.");
             btn.disabled = false; btn.textContent = "CONFIRMAR";
         }
     }
 
-    // ── ADMIN ─────────────────────────────────────────────────────────────────
+    async function enviarFinanceiro(tipo) {
+        const desc = document.getElementById('fin-desc').value;
+        const valor = document.getElementById('fin-valor').value;
+        if (!desc || !valor) return alert("Preencha todos os campos");
+        const payload = { tipo_post: "financeiro", tipo, descricao: desc, valor: parseFloat(valor), responsavel: usuarioAtual || "Desconhecido" };
+        showToast("Salvando registro...");
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            fecharModal();
+            document.getElementById('fin-desc').value = '';
+            document.getElementById('fin-valor').value = '';
+            showToast("✓ Registro salvo com sucesso!");
+            fetchCaixa();
+        } catch(e) { alert("Erro ao salvar financeiro."); }
+    }
+
+    // ── MODAL & OUTROS ────────────────────────────────────────────────────────
+    function verDetalhesHistorico(i) {
+        document.getElementById('histDetalhesTitulo').textContent = `Detalhes da Chamada`;
+        document.getElementById('histDetalhesCorpo').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Detalhes disponíveis na planilha oficial.</div>';
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalHistDetalhes').style.display = 'block';
+        document.body.classList.add('modal-open');
+    }
+
+    function imprimirChamada() {
+        haptic('medium');
+        document.getElementById('printMeta').textContent = `Data: ${dataAula} · Prof. Adultos: ${profA} · Prof. Jovens: ${profJ} · Responsável: ${usuarioAtual}`;
+        window.print();
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.style.display = 'block';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
     function abrirAdmin() { 
         document.getElementById('modalOverlay').style.display = 'flex'; 
         document.getElementById('modalAdmin').style.display = 'block'; 
         document.body.classList.add('modal-open');
         listarAdmin(); 
     }
+
     function listarAdmin() {
         document.getElementById('listaAdminItems').innerHTML = db.map((m, i) => `
           <div class="admin-card-item">
@@ -650,17 +715,18 @@
             </div>
           </div>`).join('');
     }
+
     function editarMembro(i) { document.getElementById('editIndex').value = i; document.getElementById('membroNome').value = db[i].nome; document.getElementById('membroApelido').value = db[i].apelido; document.getElementById('btnSalvarMembro').textContent = "ATUALIZAR"; document.getElementById('btnCancelaEdit').style.display = 'block'; }
     function salvarMembro() { const i = parseInt(document.getElementById('editIndex').value); const nome = document.getElementById('membroNome').value.toUpperCase().trim(); const apelido = document.getElementById('membroApelido').value.trim() || "Membro"; if (!nome) return; if (i === -1) db.push({ nome, apelido, oculto: false }); else { db[i].nome = nome; db[i].apelido = apelido; } save(); limparFormAdmin(); listarAdmin(); render(); }
     function toggleOculto(i) { db[i].oculto = !db[i].oculto; save(); listarAdmin(); render(); }
     function limparFormAdmin() { document.getElementById('editIndex').value = "-1"; document.getElementById('membroNome').value = ""; document.getElementById('membroApelido').value = ""; document.getElementById('btnSalvarMembro').textContent = "SALVAR"; document.getElementById('btnCancelaEdit').style.display = 'none'; }
 
-    // ── MODAL ─────────────────────────────────────────────────────────────────
     function fecharModal() { 
         document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none'); 
         document.getElementById('modalOverlay').style.display = 'none'; 
         document.body.classList.remove('modal-open');
     }
+
     function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) fecharModal(); }
 
     function abrirSeletor(tipo) {
@@ -694,82 +760,11 @@
         if (t === 'EXCLUIR_MEMBRO') { document.getElementById('confirmIcon').textContent = "🗑️"; document.getElementById('confirmTitle').textContent = "Excluir Membro?"; document.getElementById('confirmDesc').textContent = "Esta ação não pode ser desfeita."; }
         btn.onclick = executarAcao;
     }
+
     function executarAcao() { if (acaoPendente === 'ENVIAR_RELATORIO') processarEnvio(); if (acaoPendente === 'LIMPAR_CHAMADA') { localStorage.removeItem('ebd_hoje_v36'); location.reload(); } if (acaoPendente === 'EXCLUIR_MEMBRO') { db.splice(indexPendente, 1); save(); fecharModal(); abrirAdmin(); render(); } }
 
-    // ── TEMA ──────────────────────────────────────────────────────────────────
     function toggleTheme() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('ebd_theme', t); }
 
-    // ── RANKING ───────────────────────────────────────────────────────────────
-    async function fetchRanking() {
-        const c = document.getElementById('ranking-lista');
-        c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
-        try {
-            const r = await fetch(SCRIPT_URL + "?action=getRanking");
-            const d = await r.json();
-            if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
-            c.innerHTML = d.map((m, i) => `
-                <div class="rank-card">
-                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
-                    <div class="rank-info">
-                        <div class="rank-name">${capitalize(m.nome)}</div>
-                        <div class="rank-sub">${m.presencas} presenças marcadas</div>
-                    </div>
-                    <div class="rank-pts">${m.pontos} pts</div>
-                </div>`).join('');
-        } catch(e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar ranking.</p></div>'; }
-    }
-
-    // ── CAIXA ─────────────────────────────────────────────────────────────────
-    function abrirFinanceiro(tipo) {
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('modalFin').style.display = 'block';
-        document.body.classList.add('modal-open');
-        document.getElementById('fin-titulo').textContent = tipo === 'ENTRADA' ? '➕ Adicionar Dinheiro' : '➖ Retirar Dinheiro';
-        document.getElementById('btnConfirmarFin').style.background = tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)';
-        document.getElementById('btnConfirmarFin').onclick = () => enviarFinanceiro(tipo);
-    }
-
-    async function enviarFinanceiro(tipo) {
-        const desc = document.getElementById('fin-desc').value;
-        const valor = document.getElementById('fin-valor').value;
-        if (!desc || !valor) return alert("Preencha todos os campos");
-        const payload = { tipo_post: "financeiro", tipo, descricao: desc, valor: parseFloat(valor), responsavel: usuarioAtual };
-        showToast("Salvando registro...");
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            fecharModal();
-            document.getElementById('fin-desc').value = '';
-            document.getElementById('fin-valor').value = '';
-            showToast("✓ Registro salvo com sucesso!");
-            fetchCaixa();
-        } catch(e) { alert("Erro ao salvar financeiro."); }
-    }
-
-    async function fetchCaixa() {
-        const container = document.getElementById('caixa-historico');
-        container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa...</div>';
-        try {
-            const r = await fetch(SCRIPT_URL + "?action=getCaixa");
-            const data = await r.json();
-            document.getElementById('caixa-saldo').textContent = `R$ ${data.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            if (!data.historico || !data.historico.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada.</p></div>';
-                return;
-            }
-            container.innerHTML = data.historico.map(h => `
-                <div class="mov-card" style="border-left-color: ${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
-                    <div class="mov-desc">
-                        <div class="mov-desc-titulo">${h.desc}</div>
-                        <div class="mov-desc-data">${h.data}</div>
-                    </div>
-                    <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
-                        ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${h.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                    </div>
-                </div>`).join('');
-        } catch(e) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar dados do caixa.</p></div>'; }
-    }
-
-    // ── TABS ──────────────────────────────────────────────────────────────────
     function switchTab(t) {
         ['chamada', 'ranking', 'historico', 'caixa'].forEach(tab => {
             document.getElementById('tab-' + tab).style.display = t === tab ? 'block' : 'none';
@@ -780,10 +775,17 @@
         if (t === 'caixa') fetchCaixa();
     }
 
-    // ── SAVE ──────────────────────────────────────────────────────────────────
     function save() { localStorage.setItem('ebd_hoje_v36', JSON.stringify(presencas)); localStorage.setItem('ebd_db_v36', JSON.stringify(db)); }
 
-    // ── INIT ──────────────────────────────────────────────────────────────────
+    function abrirFinanceiro(tipo) {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalFin').style.display = 'block';
+        document.body.classList.add('modal-open');
+        document.getElementById('fin-titulo').textContent = tipo === 'ENTRADA' ? '➕ Adicionar Dinheiro' : '➖ Retirar Dinheiro';
+        document.getElementById('btnConfirmarFin').style.background = tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('btnConfirmarFin').onclick = () => enviarFinanceiro(tipo);
+    }
+
     window.onload = () => {
         inicializarUsuario();
         document.body.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
