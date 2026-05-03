@@ -415,7 +415,7 @@
 
 <script>
     // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
+    const SCRIPT_URL = "SUA_URL_DO_WEB_APP_AQUI"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
     let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
     let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
@@ -567,21 +567,26 @@
         container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico...</div>';
         try {
             const hist = await apiFetch("action=getHistoricoNuvem");
+            console.log("Dados do Histórico:", hist);
             if (!hist || !hist.length) { 
                 container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.</p></div>'; 
                 return; 
             }
-            container.innerHTML = hist.map((h, i) => `
-              <div class="hist-card" onclick="verDetalhesHistorico(${i})">
-                <div class="hist-date">📅 ${h.data}</div>
-                <div class="hist-stats">
-                  <span class="hist-badge p">✓ ${h.presentes} presentes</span>
-                  <span class="hist-badge a">✗ ${h.ausentes} ausentes</span>
-                  ${h.visitantes > 0 ? `<span class="hist-badge v">👋 ${h.visitantes} visitantes</span>` : ''}
-                </div>
-                <div class="hist-prof">Prof. Adultos: <b>${h.profA || h.pA || '-'}</b> · Prof. Jovens: <b>${h.profJ || h.pJ || '-'}</b></div>
-                <div class="hist-responsavel">👤 ${h.responsavel || 'Desconhecido'}</div>
-              </div>`).join('');
+            container.innerHTML = hist.map((h, i) => {
+                const dataFormatada = h.data ? (h.data.includes('T') ? new Date(h.data).toLocaleDateString('pt-BR') : h.data) : 'Data Indisponível';
+                const presentes = (parseInt(h.pA) || 0) + (parseInt(h.pJ) || 0);
+                return `
+                  <div class="hist-card" onclick="verDetalhesHistorico(${i})">
+                    <div class="hist-date">📅 ${dataFormatada}</div>
+                    <div class="hist-stats">
+                      <span class="hist-badge p">✓ ${presentes} presentes</span>
+                      <span class="hist-badge a">✗ ${h.ausentes || 0} ausentes</span>
+                      ${h.vExtQtd > 0 ? `<span class="hist-badge v">👋 ${h.vExtQtd} visitantes</span>` : ''}
+                    </div>
+                    <div class="hist-prof">Prof. Adultos: <b>${h.pA || '-'}</b> · Prof. Jovens: <b>${h.pJ || '-'}</b></div>
+                    <div class="hist-responsavel">👤 ${h.responsavel || 'Desconhecido'}</div>
+                  </div>`;
+            }).join('');
         } catch (e) { 
             container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.<br><small>${e.message}</small></p></div>`; 
         }
@@ -592,15 +597,16 @@
         c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
         try {
             const d = await apiFetch("action=getRanking");
+            console.log("Dados do Ranking:", d);
             if (!d || !d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
             c.innerHTML = d.map((m, i) => `
                 <div class="rank-card">
                     <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
                     <div class="rank-info">
                         <div class="rank-name">${capitalize(m.nome)}</div>
-                        <div class="rank-sub">${m.presencas} presenças marcadas</div>
+                        <div class="rank-sub">${m.presencas || 0} presenças marcadas</div>
                     </div>
-                    <div class="rank-pts">${m.pontos} pts</div>
+                    <div class="rank-pts">${m.pontos || 0} pts</div>
                 </div>`).join('');
         } catch(e) { c.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar ranking.<br><small>${e.message}</small></p></div>`; }
     }
@@ -610,21 +616,26 @@
         container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa...</div>';
         try {
             const data = await apiFetch("action=getCaixa");
-            document.getElementById('caixa-saldo').textContent = `R$ ${data.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            console.log("Dados do Caixa:", data);
+            const saldoAtual = data.saldo || 0;
+            document.getElementById('caixa-saldo').textContent = `R$ ${saldoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             if (!data.historico || !data.historico.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada.</p></div>';
                 return;
             }
-            container.innerHTML = data.historico.map(h => `
+            container.innerHTML = data.historico.map(h => {
+                const valor = h.valor || 0;
+                return `
                 <div class="mov-card" style="border-left-color: ${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
                     <div class="mov-desc">
-                        <div class="mov-desc-titulo">${h.desc}</div>
-                        <div class="mov-desc-data">${h.data}</div>
+                        <div class="mov-desc-titulo">${h.desc || 'Sem descrição'}</div>
+                        <div class="mov-desc-data">${h.data || ''}</div>
                     </div>
                     <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
-                        ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${h.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                        ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         } catch(e) { container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar caixa.<br><small>${e.message}</small></p></div>`; }
     }
 
