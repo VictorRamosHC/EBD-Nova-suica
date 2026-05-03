@@ -415,7 +415,7 @@
 
 <script>
     // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
+    const SCRIPT_URL = "SUA_URL_DO_WEB_APP_AQUI"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
     let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
     let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
@@ -567,16 +567,20 @@
         container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico...</div>';
         try {
             const hist = await apiFetch("action=getHistoricoNuvem");
-            console.log("Dados do Histórico:", hist);
+            console.log("Dados do Histórico (RAW):", hist);
             if (!hist || !hist.length) { 
                 container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.</p></div>'; 
                 return; 
             }
             container.innerHTML = hist.map((h, i) => {
-                if (!h.data) return '';
+                // Filtro duplo: remove undefined e string literal "undefined"
+                if (!h.data || h.data === "undefined") return '';
+                
                 const dataFormatada = h.data.includes('T') ? new Date(h.data).toLocaleDateString('pt-BR') : h.data;
                 const presentes = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
                 const visitantes = Number(h.vExtQtd) || 0;
+                const responsavel = h.responsavel || 'Desconhecido';
+                
                 return `
                   <div class="hist-card" onclick="verDetalhesHistorico(${i})">
                     <div class="hist-date">📅 ${dataFormatada}</div>
@@ -585,9 +589,9 @@
                       ${visitantes > 0 ? `<span class="hist-badge v">👋 ${visitantes} visitantes</span>` : ''}
                     </div>
                     <div class="hist-prof">Prof. Adultos: <b>${h.pA || '-'}</b> · Prof. Jovens: <b>${h.pJ || '-'}</b></div>
-                    <div class="hist-responsavel">👤 ${h.responsavel || 'Desconhecido'}</div>
+                    <div class="hist-responsavel">👤 ${responsavel}</div>
                   </div>`;
-            }).join('');
+            }).filter(x => x !== '').join('');
         } catch (e) { 
             container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.<br><small>${e.message}</small></p></div>`; 
         }
@@ -617,27 +621,39 @@
         container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa...</div>';
         try {
             const data = await apiFetch("action=getCaixa");
-            console.log("Dados do Caixa:", data);
+            console.log("Dados do Caixa (RAW):", data);
+            
+            // Conversão dupla: garante que saldo é número
             const saldoAtual = Number(data.saldo) || 0;
             document.getElementById('caixa-saldo').textContent = `R$ ${saldoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
             if (!data.historico || !data.historico.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada.</p></div>';
                 return;
             }
-            container.innerHTML = data.historico.map(m => {
-                const valor = Number(m.valor) || 0;
+            
+            container.innerHTML = data.historico.map(h => {
+                // Conversão segura de valor: Number(h.valor || 0)
+                const valorNumerico = Number(h.valor || 0);
+                const tipo = h.tipo || 'ENTRADA';
+                const descricao = h.desc || 'Sem descrição';
+                const data_mov = h.data || '';
+                
                 return `
-                <div class="mov-card" style="border-left-color: ${m.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
+                <div class="mov-card" style="border-left-color: ${tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
                     <div class="mov-desc">
-                        <div class="mov-desc-titulo">${m.desc || 'Sem descrição'}</div>
-                        <div class="mov-desc-data">${m.data || ''}</div>
+                        <div class="mov-desc-titulo">${descricao}</div>
+                        <div class="mov-desc-data">${data_mov}</div>
                     </div>
-                    <div class="mov-valor ${m.tipo === 'SAIDA' ? 'saida' : ''}">
-                        ${m.tipo === 'ENTRADA' ? '+' : '-'} R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    <div class="mov-valor ${tipo === 'SAIDA' ? 'saida' : ''}">
+                        ${tipo === 'ENTRADA' ? '+' : '-'} R$ ${valorNumerico.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </div>
                 </div>`;
             }).join('');
-        } catch(e) { container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar caixa.<br><small>${e.message}</small></p></div>`; }
+        } catch(e) { 
+            console.error("Erro fetchCaixa:", e);
+            container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar caixa.<br><small>${e.message}</small></p></div>`; 
+        }
     }
 
     async function processarEnvio() {
