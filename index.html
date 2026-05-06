@@ -415,7 +415,7 @@
 
 <script>
     // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywWTGLvib-VE8S4u6Dr8SeovdDf6enjJDcYyNPgTJI5StNUF3qpCBQezAQeoK9QWqN/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
     let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
     let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
@@ -609,7 +609,7 @@
                     <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
                     <div class="rank-info">
                         <div class="rank-name">${capitalize(m.nome)}</div>
-                        <div class="rank-sub">${m.presencas || 0} presenças marcadas</div>
+                        <div class="rank-sub">Pontuação acumulada</div>
                     </div>
                     <div class="rank-pts">${m.pontos || 0} pts</div>
                 </div>`).join('');
