@@ -204,6 +204,11 @@
         .empty-state .icon { font-size: 2.4rem; margin-bottom: 10px; }
         .empty-state p { font-size: 0.84rem; }
 
+        /* SHARE BUTTONS */
+        .caixa-share-buttons { display: flex; gap: 10px; margin-bottom: 12px; }
+        .btn-share { flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow); }
+        .btn-share:active { transform: scale(0.97); }
+
         /* PRINT */
         @media print {
             header, .stats-bar, .nav-tabs, .toolbar, .search-wrap, .progress-wrap, .fab-admin, .nav-btn, .btn-group, .oferta-btn, .fechamento, #toast { display: none !important; }
@@ -325,6 +330,10 @@
             <button class="btn-fin" style="background:var(--danger);" onclick="abrirFinanceiro('SAIDA')">➖ SAÍDA</button>
         </div>
         <div class="modal-title">Últimas Movimentações</div>
+        <div class="caixa-share-buttons">
+            <button class="btn-share" style="background:#25D366; color:white;" onclick="compartilharHistoricoWhatsApp()">📱 Compartilhar WhatsApp</button>
+            <button class="btn-share" style="background:var(--primary); color:white;" onclick="copiarHistoricoTexto()">📋 Copiar Texto</button>
+        </div>
         <div id="caixa-historico"></div>
     </div>
 
@@ -825,6 +834,199 @@
         });
         render();
     };
+    // ============================================================================
+// LOGICA DO CAIXA TOTALMENTE LOCAL (localStorage)
+// ============================================================================
+
+// Função para obter os dados do caixa do localStorage
+function obterCaixaLocal() {
+    const caixa = localStorage.getItem('ebd_caixa_local');
+    if (!caixa) {
+        // Se não existir, inicializa com saldo 0 e histórico vazio
+        return { saldo: 0, historico: [] };
+    }
+    return JSON.parse(caixa);
+}
+
+// Função para salvar os dados do caixa no localStorage
+function salvarCaixaLocal(dados) {
+    localStorage.setItem('ebd_caixa_local', JSON.stringify(dados));
+}
+
+// 1. CARREGAR E RENDERIZAR O CAIXA (Agora instantâneo e offline)
+async function fetchCaixa() {
+    const container = document.getElementById('caixa-historico');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="rank-loading">⏳ Carregando caixa local...</div>';
+    
+    try {
+        const data = obterCaixaLocal();
+        const saldoVal = Number(data.saldo) || 0;
+        
+        // Atualiza o painel de saldo na tela
+        document.getElementById('caixa-saldo').textContent = `R$ ${saldoVal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        
+        if (!data.historico || !data.historico.length) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Nenhuma movimentação registrada localmente.</p></div>';
+            return;
+        }
+        
+        // Renderiza o histórico de movimentações (mostrando as mais recentes primeiro)
+        container.innerHTML = data.historico.map(h => {
+            const valorNumerico = Number(h.valor) || 0;
+            return `
+            <div class="mov-card" style="border-left-color: ${h.tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)'}">
+                <div class="mov-desc">
+                    <div class="mov-desc-titulo">${h.desc || 'Sem descrição'}</div>
+                    <div class="mov-desc-data">${h.data || ''}</div>
+                </div>
+                <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
+                    ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${valorNumerico.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </div>
+            </div>`;
+        }).join('');
+        
+    } catch (e) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar o caixa local.</p></div>`;
+    }
+}
+
+// 2. REGISTRAR ENTRADA OU SAÍDA (Totalmente local)
+async function enviarFinanceiro(tipo) {
+    const descInput = document.getElementById('fin-desc');
+    const valorInput = document.getElementById('fin-valor');
+    
+    if (!descInput || !valorInput) return;
+    
+    const desc = descInput.value.trim();
+    const valor = parseFloat(valorInput.value);
+    
+    if (!desc || isNaN(valor) || valor <= 0) {
+        return alert("Por favor, preencha a descrição e um valor válido maior que zero.");
+    }
+
+    try {
+        const data = obterCaixaLocal();
+        let ultimoSaldo = Number(data.saldo) || 0;
+        
+        // Calcula o novo saldo com base no tipo de movimentação
+        const novoSaldo = tipo === "ENTRADA" ? ultimoSaldo + valor : ultimoSaldo - valor;
+        
+        // Formata a data atual para o padrão DD/MM/AAAA
+        const hoje = new Date();
+        const dataFormatada = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+        
+        // Cria a nova movimentação
+        const novaMovimentacao = {
+            data: dataFormatada,
+            tipo: tipo,
+            desc: desc,
+            valor: valor,
+            saldo: novoSaldo
+        };
+        
+        // Adiciona no topo do histórico local
+        data.historico.unshift(novaMovimentacao);
+        data.saldo = novoSaldo;
+        
+        // Salva de volta no telefone/browser
+        salvarCaixaLocal(data);
+        
+        // Limpa o formulário e fecha o modal
+        descInput.value = '';
+        valorInput.value = '';
+        fecharModal();
+        
+        showToast("✓ Movimentação salva localmente!");
+        
+        // Atualiza a tela imediatamente
+        fetchCaixa();
+    } catch (e) {
+        alert("Erro ao salvar a movimentação: " + e.message);
+    }
+}
+
+// 3. GERAR TEXTO DO RELATÓRIO DO CAIXA
+function gerarTextoRelatorioHistorico() {
+    const data = obterCaixaLocal();
+    const saldoAtual = Number(data.saldo) || 0;
+    
+    let texto = "📊 *RELATÓRIO DE CAIXA - EBD NOVA SUÍÇA*\n\n";
+    texto += `💰 *Saldo Atual:* R$ ${saldoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}\n\n`;
+    texto += "*Movimentações:*\n";
+    
+    if (!data.historico || !data.historico.length) {
+        texto += "Nenhuma movimentação registrada.";
+    } else {
+        data.historico.forEach((h, idx) => {
+            const emoji = h.tipo === 'ENTRADA' ? '🟢' : '🔴';
+            const sinal = h.tipo === 'ENTRADA' ? '+' : '-';
+            const valor = Number(h.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            texto += `${emoji} ${h.data} | ${sinal} R$ ${valor} | ${h.desc}\n`;
+        });
+    }
+    
+    texto += `\n_Enviado em: ${new Date().toLocaleString('pt-BR')}_`;
+    return texto;
+}
+
+// 4. COMPARTILHAR HISTÓRICO NO WHATSAPP
+function compartilharHistoricoWhatsApp() {
+    const texto = gerarTextoRelatorioHistorico();
+    const textoEncodado = encodeURIComponent(texto);
+    const urlWhatsApp = `https://api.whatsapp.com/send?text=${textoEncodado}`;
+    window.open(urlWhatsApp, '_blank');
+    showToast('✓ Abrindo WhatsApp...');
+}
+
+// 5. COPIAR HISTÓRICO PARA ÁREA DE TRANSFERÊNCIA
+function copiarHistoricoTexto() {
+    const texto = gerarTextoRelatorioHistorico();
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast('✓ Texto copiado para área de transferência!');
+    }).catch(err => {
+        alert('Erro ao copiar: ' + err.message);
+    });
+}
+
+// 6. FIX DO HISTÓRICO DE CHAMADAS (Evita que o ranking ou histórico quebre se a nuvem demorar)
+async function renderHistorico() {
+    const container = document.getElementById('historico-lista');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico da nuvem...</div>';
+    try {
+        const hist = await apiFetch("action=getHistoricoNuvem");
+        if (!hist || !hist.length) { 
+            container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.</p></div>'; 
+            return; 
+        }
+        
+        container.innerHTML = hist.map((h, i) => {
+            // Filtro rígido anti-linhas fantasma/vazias da planilha dominical
+            if (!h || !h.data || h.data === "undefined" || h.data === "") return '';
+            
+            const presentes = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
+            const visitantes = Number(h.vExtQtd) || 0;
+            const responsavel = h.responsavel || 'Sistema';
+            
+            return `
+              <div class="hist-card" onclick="verDetalhesHistorico(${i})">
+                <div class="hist-date">📅 ${h.data}</div>
+                <div class="hist-stats">
+                  <span class="hist-badge p">✓ ${presentes} presentes</span>
+                  ${visitantes > 0 ? `<span class="hist-badge v">👋 ${visitantes} visitantes</span>` : ''}
+                </div>
+                <div class="hist-prof">Prof. Adultos: <b>${h.pA || '-'}</b> · Prof. Jovens: <b>${h.pJ || '-'}</b></div>
+                <div class="hist-responsavel">👤 ${responsavel}</div>
+              </div>`;
+        }).filter(x => x !== '').join('');
+    } catch (e) { 
+        container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.<br><small>Verifique a conexão.</small></p></div>`; 
+    }
+}
+
 </script>
 </body>
 </html>
