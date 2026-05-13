@@ -319,6 +319,10 @@
 
     <div id="tab-historico" style="display:none;">
         <div class="modal-title">📅 Histórico de Chamadas</div>
+        <div class="caixa-share-buttons">
+            <button class="btn-share" style="background:#25D366; color:white;" onclick="compartilharChamadasWhatsApp()">📱 Compartilhar WhatsApp</button>
+            <button class="btn-share" style="background:var(--primary); color:white;" onclick="copiarChamadasTexto()">📋 Copiar Texto</button>
+        </div>
         <div id="historico-lista"></div>
     </div>
 
@@ -428,40 +432,7 @@
     // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
-    let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
-        { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
-        { nome: "ALAN QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "ANTONIA APARECIDA FUZATO", apelido: "Irmã Tânia", oculto: false },
-        { nome: "APARECIDA GRANADA", apelido: "Irmã Cida (Edirlei)", oculto: false },
-        { nome: "CREUZA QUINTELA DA SILVA", apelido: "Membro", oculto: false },
-        { nome: "CRISTINA", apelido: "Membro", oculto: false },
-        { nome: "EDERLEI APARECIDO", apelido: "Membro", oculto: false },
-        { nome: "ELISANGELA SILVEIRA", apelido: "Membro", oculto: false },
-        { nome: "ELZA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ENZO GABRIEL", apelido: "Membro", oculto: false },
-        { nome: "FERNANDA DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "GINAUSIO CORREIA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ISABELLE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "ISAQUE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "JANAINA", apelido: "Membro", oculto: false },
-        { nome: "JEFERSON BATISTA", apelido: "Membro", oculto: false },
-        { nome: "JENIFER MONIQUE", apelido: "Membro", oculto: false },
-        { nome: "JOSE GERISMAR ONIAS", apelido: "Pastor", oculto: false },
-        { nome: "JOSELMA QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "JUNIOR DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "LUCAS HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "LUIZ CARLOS SABINO", apelido: "Irmão Luiz", oculto: false },
-        { nome: "MANOELINA FUZATO", apelido: "Irmã Nela", oculto: false },
-        { nome: "MARIA DA CRUZ CONCEIÇÃO", apelido: "Membro", oculto: false },
-        { nome: "MARIANA", apelido: "Membro", oculto: false },
-        { nome: "MAYCON APARECIDO CARVALHO", apelido: "Membro", oculto: false },
-        { nome: "NATALINO GERMANO", apelido: "Membro", oculto: false },
-        { nome: "OZIEL DA FONSECA", apelido: "Membro", oculto: false },
-        { nome: "PEDRO HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "VICTOR HUGO", apelido: "Membro", oculto: false },
-        { nome: "GERALDO", apelido: "Membro", oculto: false },
-        { nome: "VIRGÍNIA", apelido: "Membro", oculto: false }
-    ];
+    let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
     let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
     let dataAula = new Date().toLocaleDateString('pt-BR');
     let profA = "Selecionar", profJ = "Selecionar";
@@ -702,28 +673,44 @@
 
     async function processarEnvio() {
         const btn = document.getElementById('btnConfirmarFinal');
-        btn.textContent = "ENVIANDO..."; btn.disabled = true;
-        const payload = {
-            aula: { 
-                data: dataAula, 
-                pA: profA, 
-                pJ: profJ, 
-                bib: document.getElementById('bib').value, 
-                rev: document.getElementById('rev').value, 
-                vExtQtd: document.getElementById('qtdVisitantes').value, 
-                vExtNomes: document.getElementById('nomesVisitantes').value 
-            },
+        btn.textContent = "SALVANDO..."; btn.disabled = true;
+        
+        const aulaData = { 
+            data: dataAula, 
+            pA: profA, 
+            pJ: profJ, 
+            bib: document.getElementById('bib').value || 0, 
+            rev: document.getElementById('rev').value || 0, 
+            vExtQtd: document.getElementById('qtdVisitantes').value || 0, 
+            vExtNomes: document.getElementById('nomesVisitantes').value || "" 
+        };
+        
+        const registro = {
+            aula: aulaData,
             responsavel: usuarioAtual || "Desconhecido",
             frequencia: db.map(m => ({ nome: m.nome, status: presencas[m.nome]?.status || 'A', perguntas: presencas[m.nome]?.perguntas || 0, ofertou: presencas[m.nome]?.ofertou || false }))
         };
+
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            // 1. Salvar Localmente (ebd_historico_chamadas_local)
+            let historicoLocal = JSON.parse(localStorage.getItem('ebd_historico_chamadas_local') || '[]');
+            historicoLocal.unshift(registro);
+            localStorage.setItem('ebd_historico_chamadas_local', JSON.stringify(historicoLocal));
+
+            // 2. Tentar enviar para a nuvem (opcional/segundo plano)
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(registro) }).catch(e => console.log("Erro envio nuvem (offline):", e));
+
             fecharModal();
             haptic('success');
-            showToast('✓ CHAMADA ENVIADA COM SUCESSO');
-            setTimeout(() => { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }, 2500);
+            showToast('✓ CHAMADA SALVA LOCALMENTE');
+            
+            // Limpar dados de hoje e recarregar
+            setTimeout(() => { 
+                localStorage.removeItem('ebd_hoje_v36'); 
+                location.reload(); 
+            }, 2000);
         } catch (e) {
-            alert("Erro ao enviar. Verifique sua conexão e o link do script.");
+            alert("Erro ao salvar localmente: " + e.message);
             btn.disabled = false; btn.textContent = "CONFIRMAR";
         }
     }
@@ -1025,41 +1012,106 @@ function copiarHistoricoTexto() {
     });
 }
 
-// 6. FIX DO HISTÓRICO DE CHAMADAS (Evita que o ranking ou histórico quebre se a nuvem demorar)
-async function renderHistorico() {
+// 6. GERAR TEXTO DO RELATÓRIO DE CHAMADAS
+function gerarTextoRelatorioChamadas() {
+    const hist = JSON.parse(localStorage.getItem('ebd_historico_chamadas_local') || '[]');
+    if (!hist.length) return "Nenhuma chamada registrada.";
+
+    let texto = "📊 *HISTÓRICO DE AULAS - EBD NOVA SUÍÇA*\n\n";
+    
+    hist.slice(0, 10).forEach(h => { // Mostra as últimas 10
+        const presentes = (Number(h.aula.pA === "Selecionar" ? 0 : 1) + Number(h.aula.pJ === "Selecionar" ? 0 : 1)); // Exemplo simplificado de soma
+        // Na verdade, a soma correta depende de como você quer contar. Vamos usar os dados salvos:
+        const totalPresentes = h.frequencia.filter(f => f.status === 'P').length;
+        const totalVisitantes = h.frequencia.filter(f => f.status === 'V').length + (Number(h.aula.vExtQtd) || 0);
+
+        texto += `📅 *Data:* ${h.aula.data}\n`;
+        texto += `👥 *Presentes:* ${totalPresentes} | 👋 *Vis:* ${totalVisitantes}\n`;
+        texto += `👤 *Resp:* ${h.responsavel}\n`;
+        texto += `--------------------------\n`;
+    });
+
+    texto += `\n_Relatório gerado em: ${new Date().toLocaleString('pt-BR')}_`;
+    return texto;
+}
+
+// 7. COMPARTILHAR CHAMADAS NO WHATSAPP
+function compartilharChamadasWhatsApp() {
+    const texto = gerarTextoRelatorioChamadas();
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+    showToast('✓ Abrindo WhatsApp...');
+}
+
+// 8. COPIAR CHAMADAS PARA ÁREA DE TRANSFERÊNCIA
+function copiarChamadasTexto() {
+    const texto = gerarTextoRelatorioChamadas();
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast('✓ Histórico copiado!');
+    }).catch(err => alert('Erro ao copiar: ' + err.message));
+}
+
+// 9. RENDERIZAR HISTÓRICO LOCAL
+function renderHistorico() {
     const container = document.getElementById('historico-lista');
     if (!container) return;
     
-    container.innerHTML = '<div class="rank-loading">⏳ Carregando histórico da nuvem...</div>';
-    try {
-        const hist = await apiFetch("action=getHistoricoNuvem");
-        if (!hist || !hist.length) { 
-            container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada enviada ainda.</p></div>'; 
-            return; 
-        }
-        
-        container.innerHTML = hist.map((h, i) => {
-            // Filtro rígido anti-linhas fantasma/vazias da planilha dominical
-            if (!h || !h.data || h.data === "undefined" || h.data === "") return '';
-            
-            const presentes = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
-            const visitantes = Number(h.vExtQtd) || 0;
-            const responsavel = h.responsavel || 'Sistema';
-            
-            return `
-              <div class="hist-card" onclick="verDetalhesHistorico(${i})">
-                <div class="hist-date">📅 ${h.data}</div>
-                <div class="hist-stats">
-                  <span class="hist-badge p">✓ ${presentes} presentes</span>
-                  ${visitantes > 0 ? `<span class="hist-badge v">👋 ${visitantes} visitantes</span>` : ''}
-                </div>
-                <div class="hist-prof">Prof. Adultos: <b>${h.pA || '-'}</b> · Prof. Jovens: <b>${h.pJ || '-'}</b></div>
-                <div class="hist-responsavel">👤 ${responsavel}</div>
-              </div>`;
-        }).filter(x => x !== '').join('');
-    } catch (e) { 
-        container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar histórico.<br><small>Verifique a conexão.</small></p></div>`; 
+    const hist = JSON.parse(localStorage.getItem('ebd_historico_chamadas_local') || '[]');
+    
+    if (!hist.length) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma chamada salva localmente.</p></div>';
+        return;
     }
+    
+    container.innerHTML = hist.map((h, i) => {
+        const totalPresentes = h.frequencia.filter(f => f.status === 'P').length;
+        const totalVisitantes = h.frequencia.filter(f => f.status === 'V').length + (Number(h.aula.vExtQtd) || 0);
+        
+        return `
+          <div class="hist-card" onclick="verDetalhesHistoricoLocal(${i})">
+            <div class="hist-date">📅 ${h.aula.data}</div>
+            <div class="hist-stats">
+              <span class="hist-badge p">✓ ${totalPresentes} presentes</span>
+              ${totalVisitantes > 0 ? `<span class="hist-badge v">👋 ${totalVisitantes} visitantes</span>` : ''}
+            </div>
+            <div class="hist-prof">Prof. A: <b>${h.aula.pA}</b> · Prof. J: <b>${h.aula.pJ}</b></div>
+            <div class="hist-responsavel">👤 ${h.responsavel}</div>
+          </div>`;
+    }).join('');
+}
+
+// 10. VER DETALHES LOCAL
+function verDetalhesHistoricoLocal(i) {
+    const hist = JSON.parse(localStorage.getItem('ebd_historico_chamadas_local') || '[]');
+    const h = hist[i];
+    
+    let html = `
+        <div style="background:var(--surface2); padding:15px; border-radius:12px; margin-bottom:15px;">
+            <p><b>Data:</b> ${h.aula.data}</p>
+            <p><b>Responsável:</b> ${h.responsavel}</p>
+            <p><b>Prof. Adultos:</b> ${h.aula.pA}</p>
+            <p><b>Prof. Jovens:</b> ${h.aula.pJ}</p>
+            <p><b>Bíblias:</b> ${h.aula.bib} | <b>Revistas:</b> ${h.aula.rev}</p>
+            <p><b>Visitantes Externos:</b> ${h.aula.vExtQtd} (${h.aula.vExtNomes || 'Nenhum'})</p>
+        </div>
+        <div class="modal-title" style="font-size:0.9rem;">Lista de Presença</div>
+    `;
+    
+    h.frequencia.forEach(f => {
+        if (f.status !== 'A') {
+            const cor = f.status === 'P' ? 'var(--success)' : 'var(--warning)';
+            html += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.8rem;">
+                <span>${f.nome}</span>
+                <b style="color:${cor}">${f.status === 'P' ? 'PRESENTE' : 'VISITANTE'}</b>
+            </div>`;
+        }
+    });
+
+    document.getElementById('histDetalhesTitulo').textContent = `Detalhes da Aula`;
+    document.getElementById('histDetalhesCorpo').innerHTML = html;
+    document.getElementById('modalOverlay').style.display = 'flex';
+    document.getElementById('modalHistDetalhes').style.display = 'block';
+    document.body.classList.add('modal-open');
 }
 
 </script>
