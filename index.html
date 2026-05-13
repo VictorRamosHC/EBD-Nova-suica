@@ -428,7 +428,40 @@
     // ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_tTowW91HQlmOpzj-kwAwr8X49T1xA7BZ5OHvBppAweTLHWLSjAHkKnP0mYrnDphY/exec"; // COLE AQUI O LINK DO GOOGLE SCRIPT
 
-    let db = JSON.parse(localStorage.getItem('ebd_db_v36') || '[{"nome":"EXEMPLO DE ALUNO","apelido":"Exemplo","oculto":false}]');
+    let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
+        { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
+        { nome: "ALAN QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
+        { nome: "ANTONIA APARECIDA FUZATO", apelido: "Irmã Tânia", oculto: false },
+        { nome: "APARECIDA GRANADA", apelido: "Irmã Cida (Edirlei)", oculto: false },
+        { nome: "CREUZA QUINTELA DA SILVA", apelido: "Membro", oculto: false },
+        { nome: "CRISTINA", apelido: "Membro", oculto: false },
+        { nome: "EDERLEI APARECIDO", apelido: "Membro", oculto: false },
+        { nome: "ELISANGELA SILVEIRA", apelido: "Membro", oculto: false },
+        { nome: "ELZA MENEZES", apelido: "Membro", oculto: false },
+        { nome: "ENZO GABRIEL", apelido: "Membro", oculto: false },
+        { nome: "FERNANDA DE OLIVEIRA", apelido: "Membro", oculto: false },
+        { nome: "GINAUSIO CORREIA MENEZES", apelido: "Membro", oculto: false },
+        { nome: "ISABELLE GRANADA", apelido: "Membro", oculto: false },
+        { nome: "ISAQUE GRANADA", apelido: "Membro", oculto: false },
+        { nome: "JANAINA", apelido: "Membro", oculto: false },
+        { nome: "JEFERSON BATISTA", apelido: "Membro", oculto: false },
+        { nome: "JENIFER MONIQUE", apelido: "Membro", oculto: false },
+        { nome: "JOSE GERISMAR ONIAS", apelido: "Pastor", oculto: false },
+        { nome: "JOSELMA QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
+        { nome: "JUNIOR DE OLIVEIRA", apelido: "Membro", oculto: false },
+        { nome: "LUCAS HENRIQUE", apelido: "Membro", oculto: false },
+        { nome: "LUIZ CARLOS SABINO", apelido: "Irmão Luiz", oculto: false },
+        { nome: "MANOELINA FUZATO", apelido: "Irmã Nela", oculto: false },
+        { nome: "MARIA DA CRUZ CONCEIÇÃO", apelido: "Membro", oculto: false },
+        { nome: "MARIANA", apelido: "Membro", oculto: false },
+        { nome: "MAYCON APARECIDO CARVALHO", apelido: "Membro", oculto: false },
+        { nome: "NATALINO GERMANO", apelido: "Membro", oculto: false },
+        { nome: "OZIEL DA FONSECA", apelido: "Membro", oculto: false },
+        { nome: "PEDRO HENRIQUE", apelido: "Membro", oculto: false },
+        { nome: "VICTOR HUGO", apelido: "Membro", oculto: false },
+        { nome: "GERALDO", apelido: "Membro", oculto: false },
+        { nome: "VIRGÍNIA", apelido: "Membro", oculto: false }
+    ];
     let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
     let dataAula = new Date().toLocaleDateString('pt-BR');
     let profA = "Selecionar", profJ = "Selecionar";
