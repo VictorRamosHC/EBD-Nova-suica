@@ -1774,7 +1774,7 @@
         const pts = {};
         hist.forEach(h => {
             (h.frequencia || []).forEach(f => {
-                if (f.status === 'A') pts[f.nome] = (pts[f.nome] || 0) + 1;
+                if (f.status === 'P') pts[f.nome] = (pts[f.nome] || 0) + 1;
             });
         });
         return Object.entries(pts).map(([nome, pontos]) => ({ nome, pontos }))
