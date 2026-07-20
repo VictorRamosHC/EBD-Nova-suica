@@ -790,10 +790,26 @@
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
         }
-        
+
+        .mov-remover {
+            background: transparent;
+            border: 1px solid var(--border, #ddd);
+            color: var(--danger, #e74c3c);
+            border-radius: 8px;
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            flex-shrink: 0;
+            align-self: center;
+            margin-left: 8px;
+        }
+        .mov-remover:hover { background: rgba(231,76,60,0.1); }
+
+
         .mov-desc {
             flex: 1;
-        }
+
         
         .mov-desc-titulo {
             font-weight: 600;
@@ -1691,12 +1707,27 @@
         return await response.json();
     }
 
+    // ── RANKING (nuvem com fallback local) ─────────────────────────────────────
+    function obterHistoricoLocal() { return JSON.parse(localStorage.getItem('ebd_historico_local') || '[]'); }
+    function salvarHistoricoLocal(lista) { localStorage.setItem('ebd_historico_local', JSON.stringify(lista)); }
+    function calcularRankingLocal() {
+        const hist = obterHistoricoLocal();
+        const pts = {};
+        hist.forEach(h => {
+            (h.frequencia || []).forEach(f => {
+                if (f.status === 'A') pts[f.nome] = (pts[f.nome] || 0) + 1;
+            });
+        });
+        return Object.entries(pts).map(([nome, pontos]) => ({ nome, pontos }))
+                   .sort((a, b) => b.pontos - a.pontos);
+    }
+
     async function fetchRanking() {
         const c = document.getElementById('ranking-lista');
         c.innerHTML = '<div class="rank-loading">⏳ Atualizando...</div>';
         try {
             const d = await apiFetch("action=getRanking");
-            if (!d || !d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Sem dados.</p></div>'; return; }
+            if (!d || !d.length) throw new Error("vazio");
             c.innerHTML = d.map((m, i) => `
                 <div class="rank-card">
                     <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
@@ -1706,7 +1737,20 @@
                     </div>
                     <div class="rank-pts">${m.pontos || 0} pts</div>
                 </div>`).join('');
-        } catch(e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ranking.</p></div>'; }
+        } catch (e) {
+            // fallback local
+            const d = calcularRankingLocal();
+            if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Sem dados. Finalize chamadas para gerar o ranking.</p></div>'; return; }
+            c.innerHTML = d.map((m, i) => `
+                <div class="rank-card">
+                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
+                    <div class="rank-info">
+                        <div class="rank-name">${capitalize(m.nome)}</div>
+                        <div class="rank-sub">Presenças acumuladas (local)</div>
+                    </div>
+                    <div class="rank-pts">${m.pontos || 0} pres.</div>
+                </div>`).join('');
+        }
     }
 
     async function renderHistorico() {
@@ -1714,7 +1758,7 @@
         c.innerHTML = '<div class="rank-loading">⏳ Carregando...</div>';
         try {
             const hist = await apiFetch("action=getHistoricoNuvem");
-            if (!hist || !hist.length) { c.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Sem histórico.</p></div>'; return; }
+            if (!hist || !hist.length) throw new Error("vazio");
             c.innerHTML = hist.map((h, i) => {
                 if (!h || !h.data || h.data === "undefined") return '';
                 const p = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
@@ -1729,7 +1773,24 @@
                     <div class="hist-responsavel">👤 ${h.responsavel || 'Sistema'}</div>
                   </div>`;
             }).filter(x => x !== '').join('');
-        } catch (e) { c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro histórico.</p></div>'; }
+        } catch (e) {
+            // fallback local
+            const hist = obterHistoricoLocal();
+            if (!hist.length) { c.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Sem histórico. Finalize uma chamada para registrar.</p></div>'; return; }
+            c.innerHTML = hist.slice().reverse().map((h, i) => {
+                const p = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
+                return `
+                  <div class="hist-card" onclick="verDetalhesHistorico(${i})">
+                    <div class="hist-date">📅 ${h.data || '-'}</div>
+                    <div class="hist-stats">
+                      <span class="hist-badge p">✓ ${p} presentes</span>
+                      ${h.vExtQtd > 0 ? `<span class="hist-badge v">👋 ${h.vExtQtd} visitantes</span>` : ''}
+                    </div>
+                    <div class="hist-prof">Prof: ${h.pA || '-'} / ${h.pJ || '-'}</div>
+                    <div class="hist-responsavel">👤 ${h.responsavel || 'Sistema'}</div>
+                  </div>`;
+            }).join('');
+        }
     }
 
     // ── CAIXA LOCAL ───────────────────────────────────────────────────────────
@@ -1750,6 +1811,7 @@
                 <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
                     ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${Number(h.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </div>
+                <button class="mov-remover" title="Remover" onclick="removerMovCaixa('${h.id}')">✕</button>
             </div>`).join('');
     }
 
@@ -1758,12 +1820,30 @@
         const desc = dInput.value.trim(), valor = parseFloat(vInput.value);
         if (!desc || isNaN(valor) || valor <= 0) return alert("Preencha corretamente.");
         const data = obterCaixaLocal();
+        if (tipo === "SAIDA" && valor > data.saldo) {
+            return alert("Saldo insuficiente! O caixa tem R$ " + Number(data.saldo).toLocaleString('pt-BR', {minimumFractionDigits: 2}) + ".");
+        }
         const novoSaldo = tipo === "ENTRADA" ? data.saldo + valor : data.saldo - valor;
-        data.historico.unshift({ data: new Date().toLocaleDateString('pt-BR'), tipo, desc, valor, saldo: novoSaldo });
+        const id = Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+        data.historico.unshift({ id, data: new Date().toLocaleDateString('pt-BR'), tipo, desc, valor, saldo: novoSaldo });
         data.saldo = novoSaldo;
         salvarCaixaLocal(data);
         dInput.value = ''; vInput.value = ''; fecharModal();
         showToast("✓ Salvo localmente!");
+        fetchCaixa();
+    }
+
+    function removerMovCaixa(id) {
+        const data = obterCaixaLocal();
+        const m = data.historico.find(x => x.id === id);
+        if (!m) return;
+        if (!confirm("Remover esta movimentação? O saldo será ajustado.")) return;
+        // recalcula saldo base retirando este lançamento
+        const ajuste = m.tipo === "ENTRADA" ? -m.valor : +m.valor;
+        data.saldo = (Number(data.saldo) + ajuste);
+        data.historico = data.historico.filter(x => x.id !== id);
+        salvarCaixaLocal(data);
+        showToast("✓ Movimentação removida");
         fetchCaixa();
     }
 
@@ -1806,6 +1886,12 @@
             };
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                // salva também localmente (fallback)
+                try {
+                    const hist = obterHistoricoLocal();
+                    hist.push({ data: payload.aula.data, pA: payload.aula.pA, pJ: payload.aula.pJ, vExtQtd: payload.aula.vExtQtd, responsavel: payload.responsavel, frequencia: payload.frequencia });
+                    salvarHistoricoLocal(hist);
+                } catch (e2) { /* ignora */ }
                 fecharModal(); haptic('success'); showToast('✓ ENVIADO!');
                 setTimeout(() => { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }, 2000);
             } catch (e) { alert("Erro envio."); btn.disabled = false; btn.textContent = "CONFIRMAR"; }
