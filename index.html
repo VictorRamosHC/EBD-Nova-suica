@@ -270,7 +270,7 @@
         /* MAIN CONTENT */
         /* ─────────────────────────────────────────────────────────────────────── */
         #main-content {
-            padding: 0 16px 16px 16px;
+            padding: 0 16px 120px 16px;
         }
         
         .tab-content {
@@ -871,16 +871,23 @@
             bottom: 0;
             left: 0;
             right: 0;
+            /* fundo sólido garante a barra visível mesmo se backdrop-filter não renderizar no WebView */
+            background: var(--header-bg-solid, #FFFFFF);
             background: var(--header-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             display: flex;
-            padding: 8px 0 20px 0;
+            align-items: stretch;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)) 0;
             border-top: 1px solid var(--border);
-            z-index: 80;
-            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
         }
-        
+
+        /* fallback de cor sólida para temas (claro/escuro) caso a var seja translúcida */
+        :root { --header-bg-solid: #FFFFFF; }
+        :root[data-theme="dark"] { --header-bg-solid: #1C1C1E; }
+
         .nav-item {
             flex: 1;
             display: flex;
