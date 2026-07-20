@@ -34,7 +34,7 @@
             --border: rgba(255, 255, 255, 0.55);
             --shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
             --header-bg: rgba(242, 242, 247, 0.55);
-            --glass-blur: 20px;
+            --glass-blur: 14px;
             --radius: 12px;
         }
         
@@ -84,12 +84,11 @@
                 radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.18), transparent 40%),
                 radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.16), transparent 45%),
                 radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.16), transparent 45%),
-                url('background_ebd_1.png');
+                url('background_ebd_1.jpg');
             background-size: cover, cover, cover, cover, cover;
             background-position: center;
             background-repeat: no-repeat;
             background-color: var(--bg);
-            background-attachment: fixed;
             opacity: 0.9;
         }
         [data-theme="dark"] body::before {
@@ -98,12 +97,11 @@
                 radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.20), transparent 40%),
                 radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.18), transparent 45%),
                 radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.20), transparent 45%),
-                url('background_ebd_1.png');
+                url('background_ebd_1.jpg');
             background-size: cover, cover, cover, cover, cover;
             background-position: center;
             background-repeat: no-repeat;
             background-color: var(--bg);
-            background-attachment: fixed;
             opacity: 0.55;
         }
 
@@ -111,12 +109,17 @@
             overflow: hidden;
         }
 
-        /* GLASS: borra o fundo decorativo em todas as superficies translucidas */
-        header, .bottom-nav, .stat-pill, .rank-card, .hist-card, .mov-card,
-        .card, .modal-content, .modal-box, .nav-tabs, .date-badge, .admin-card-item,
+        /* GLASS: so os elementos principais (header/nav/modais) recebem blur forte.
+           cards pequenos usam blur leve p/ nao sobrecarregar o GPU no mobile. */
+        header, .bottom-nav, .modal-content, .modal-box {
+            backdrop-filter: blur(var(--glass-blur, 14px));
+            -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
+        }
+        .stat-pill, .rank-card, .hist-card, .mov-card,
+        .card, .nav-tabs, .date-badge, .admin-card-item,
         .user-badge, .tool-btn, .fechamento, .icon-btn {
-            backdrop-filter: blur(var(--glass-blur, 20px));
-            -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         body.modal-open #main-content {
@@ -132,8 +135,8 @@
             top: 0;
             z-index: 100;
             background: var(--header-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             box-shadow: var(--shadow);
@@ -923,8 +926,8 @@
             /* fundo sólido garante a barra visível mesmo se backdrop-filter não renderizar no WebView */
             background: var(--header-bg-solid, #FFFFFF);
             background: var(--header-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             display: flex;
             align-items: stretch;
             padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)) 0;
