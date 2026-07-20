@@ -23,28 +23,33 @@
             --danger-dim: rgba(255, 59, 48, 0.08);
             --warning: #FF9500;
             --warning-dim: rgba(255, 149, 0, 0.08);
+            /* fundo base (atras do vidro) */
             --bg: #F2F2F7;
-            --surface: #FFFFFF;
-            --surface2: #F9F9F9;
+            /* superficies TRANSLUCIDAS p/ glassmorphism real */
+            --surface: rgba(255, 255, 255, 0.62);
+            --surface-solid: #FFFFFF;
+            --surface2: rgba(255, 255, 255, 0.45);
             --text: #000000;
             --text-muted: #8E8E93;
-            --border: #E5E5EA;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            --header-bg: rgba(242, 242, 247, 0.95);
+            --border: rgba(255, 255, 255, 0.55);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+            --header-bg: rgba(242, 242, 247, 0.55);
+            --glass-blur: 20px;
             --radius: 12px;
         }
         
         [data-theme="dark"] {
             --bg: #1C1C1E;
-            --surface: #2C2C2E;
-            --surface2: #3A3A3C;
+            --surface: rgba(44, 44, 46, 0.55);
+            --surface-solid: #2C2C2E;
+            --surface2: rgba(58, 58, 60, 0.45);
             --text: #FFFFFF;
             --text-muted: #8E8E93;
-            --border: #3A3A3C;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            --header-bg: rgba(28, 28, 30, 0.95);
+            --border: rgba(255, 255, 255, 0.12);
+            --shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+            --header-bg: rgba(28, 28, 30, 0.55);
         }
-        
+
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -64,12 +69,45 @@
             padding: 0 0 110px 0;
             transition: background 0.3s ease, color 0.3s ease;
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
-        
+
+        /* FUNDO DECORATIVO ATRAS DO VIDRO (glassmorphism real) */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 18%, rgba(0, 122, 255, 0.22), transparent 42%),
+                radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.20), transparent 40%),
+                radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.18), transparent 45%),
+                radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.18), transparent 45%),
+                var(--bg);
+            background-attachment: fixed;
+        }
+        [data-theme="dark"] body::before {
+            background:
+                radial-gradient(circle at 15% 18%, rgba(0, 122, 255, 0.30), transparent 42%),
+                radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.22), transparent 40%),
+                radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.20), transparent 45%),
+                radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.22), transparent 45%),
+                var(--bg);
+        }
+
         body.modal-open {
             overflow: hidden;
         }
-        
+
+        /* GLASS: borra o fundo decorativo em todas as superficies translucidas */
+        header, .bottom-nav, .stat-pill, .rank-card, .hist-card, .mov-card,
+        .card, .modal-content, .modal-box, .nav-tabs, .date-badge, .admin-card-item,
+        .user-badge, .tool-btn, .fechamento, .icon-btn {
+            backdrop-filter: blur(var(--glass-blur, 20px));
+            -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
+        }
+
         body.modal-open #main-content {
             filter: blur(6px);
             transition: filter 0.3s ease;
