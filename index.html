@@ -715,21 +715,38 @@
 
     async function fetchRanking() {
         const c = document.getElementById('ranking-lista');
-        c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
         try {
+            c.innerHTML = '<div class="rank-loading">⏳ Atualizando ranking...</div>';
             const r = await fetch(SCRIPT_URL + "?action=getRanking");
-            const d = await r.json();
+            let d = await r.json();
+            
+            // Fallback seguro: garante que d seja um array
+            d = Array.isArray(d) ? d : [];
+            
+            if (!d.length) { 
+                c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum ponto registrado neste trimestre ainda.</p></div>'; 
+                return; 
+            }
+            
+            // Ordenação local à prova de falhas (maior para menor)
+            const rankingOrdenado = [...d].sort((a, b) => {
+                const ptsA = Number(a.pontos) || 0;
+                const ptsB = Number(b.pontos) || 0;
+                return ptsB - ptsA;
+            });
+            
             c.innerHTML = '';
-            if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum dado no ranking ainda.</p></div>'; return; }
-            d.forEach((m, i) => {
+            rankingOrdenado.forEach((m, i) => {
                 const card = document.createElement('div');
                 card.className = 'rank-card';
                 const posClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-                card.innerHTML = `<div class="rank-pos ${posClass}">${i + 1}°</div><div class="rank-info"><div class="rank-name">${capitalize(m.nome)}</div><div class="rank-sub">${m.apelido || 'Membro'}</div></div><div class="rank-pts">${m.pontos} pts</div>`;
+                const pontosSeguros = Number(m.pontos) || 0;
+                card.innerHTML = `<div class="rank-pos ${posClass}">${i + 1}°</div><div class="rank-info"><div class="rank-name">${capitalize(m.nome)}</div><div class="rank-sub">${m.apelido || 'Membro'}</div></div><div class="rank-pts">${pontosSeguros} pts</div>`;
                 c.appendChild(card);
             });
-        } catch (e) {
-            c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao buscar ranking. Verifique sua conexão.</p></div>';
+        } catch (error) {
+            console.error(error);
+            c.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Erro ao carregar ranking. Verifique sua conexão.</p></div>';
         }
     }
 
