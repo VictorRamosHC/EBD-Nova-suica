@@ -756,6 +756,225 @@
             border-color: var(--primary);
         }
 
+        /* ─────────────────────────────────────────────────────────────────────── */
+        /* JORNADA */
+        /* ─────────────────────────────────────────────────────────────────────── */
+        .jornada-header {
+            text-align: center;
+            padding: 20px 0 12px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .jornada-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--primary);
+        }
+        .jornada-header .sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .jornada-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            margin: 12px;
+            border-radius: 12px;
+        }
+        .jornada-section {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 70px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .jornada-section:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        .jornada-section .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .jornada-section .val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .jornada-section .val span {
+            color: var(--primary);
+        }
+        .jornada-resumo {
+            background: var(--surface);
+            margin: 0 12px 12px;
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 4px solid var(--primary);
+        }
+        .jornada-resumo .r-lbl {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .jornada-resumo .r-line {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .jornada-resumo .r-line .emoji {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .jornada-hook {
+            text-align: center;
+            padding: 16px 12px 24px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .jornada-hook .q {
+            color: var(--primary);
+            font-weight: 600;
+            margin: 8px 0;
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────── */
+        /* MEMÓRIAS */
+        /* ─────────────────────────────────────────────────────────────────────── */
+        .memorias-header {
+            text-align: center;
+            padding: 20px 0 8px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .memorias-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: var(--primary);
+        }
+        .memorias-header .sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .memoria-card {
+            margin: 12px;
+            border-radius: 14px;
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .memoria-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        .memoria-card .mv-ref {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+        }
+        .memoria-card .mv-verso {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        .memoria-card .mv-hook {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .memoria-card .mv-check {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .memoria-card .mv-check.marcado {
+            background: var(--success-dim);
+            color: var(--success);
+            border-color: var(--success);
+        }
+        .memoria-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 12px;
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+        }
+        .memoria-progress .mp-lbl {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+        }
+        .memoria-progress .mp-num {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .memoria-progress .mp-barbg {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .memoria-progress .mp-barfill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+        .memoria-footer {
+            text-align: center;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        .memoria-footer .q {
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+
         .hist-date {
             font-weight: 700;
             font-size: 0.9rem;
@@ -1011,10 +1230,6 @@
 
         .nav-item:hover {
             color: var(--primary-light);
-        }
-
-        .nav-item.active {
-            color: var(--primary);
         }
 
         .nav-item:focus-visible {
@@ -1523,6 +1738,83 @@
                 <button class="btn-fin" onclick="abrirFinanceiro('SAIDA')">➖ Saída</button>
             </div>
             <div id="caixa-historico"></div>
+        </div>
+
+        <!-- TAB: JORNADA -->
+        <div id="tab-jornada" class="tab-content">
+            <div class="jornada-header">
+                <h2>Série 6ª · Ana Silva</h2>
+                <div class="sub">Jan – Dez 2026 · 39 semanas</div>
+            </div>
+
+            <div class="jornada-grid">
+                <div class="jornada-section">
+                    <div class="label">Total de aulas</div>
+                    <div class="val"><span>39</span> aulas</div>
+                </div>
+                <div class="jornada-section">
+                    <div class="label">Presença</div>
+                    <div class="val"><span>92%</span> presente</div>
+                </div>
+                <div class="jornada-section">
+                    <div class="label">Faltas celetinas</div>
+                    <div class="val"><span>3</span> faltas</div>
+                </div>
+                <div class="jornada-section">
+                    <div class="label">Ranking</div>
+                    <div class="val">#<span>7</span> / 24</div>
+                </div>
+            </div>
+
+            <div class="jornada-resumo">
+                <div class="r-lbl">Resumo da Jornada</div>
+                <div class="r-line"><span class="emoji">📖</span> Aumentou a frequência desde o 2º trimestre — 92% de presença é o melhor do ano.</div>
+                <div class="r-line"><span class="emoji">🙏</span> Participa ativamente dos depreciable. Mostra bom juízo nas discussões.</div>
+                <div class="r-line"><span class="emoji">🎒</span> Precisa levar o caderno todo. Amanhã conversamos sobre isso.</div>
+            </div>
+
+            <div class="jornada-hook">
+                <div>O que você aprendeu sobre Deus esse mês?</div>
+                <div class="q">"Eu sou o caminho, a verdade e a vida."</div>
+                <div style="font-size:0.7rem; opacity:0.6; margin-top:6px">— João 14:6 · reflexão semanal</div>
+            </div>
+        </div>
+
+        <!-- TAB: MEMÓRIAS -->
+        <div id="tab-memorias" class="tab-content">
+            <div class="memorias-header">
+                <h2>Memórias</h2>
+                <div class="sub">Deixando a Palavra em sua mente</div>
+            </div>
+
+            <div class="memoria-progress">
+                <span class="mp-lbl">Este mês</span>
+                <span class="mp-num">3 / 12</span>
+                <div class="mp-barbg"><div class="mp-barfill" style="width:25%"></div></div>
+            </div>
+
+            <div class="memoria-card">
+                <div class="mv-ref">Marcos 12:30</div>
+                <div class="mv-verso">E ama o Senhor, o teu Deus, de todo o teu coração, e de toda a tua alma, e de todo o teu entendimento.</div>
+                <div class="mv-hook">Segunda-feira · deposta na memória</div>
+            </div>
+
+            <div class="memoria-card">
+                <div class="mv-ref">Salmos 23:1</div>
+                <div class="mv-verso">O Senhor é o meu pastor, nada me falta.</div>
+                <div class="mv-hook">Terça-feira · deposta na memória</div>
+            </div>
+
+            <div class="memoria-card">
+                <div class="mv-ref">Filipenses 4:13</div>
+                <div class="mv-verso">Tudo posso naquele que me fortalece.</div>
+                <div class="mv-hook">Quarta-feira · ainda em revisão</div>
+            </div>
+
+            <div class="memoria-footer">
+                Domingo: lembre-se de repassar o versículo da semana antes da ceia.
+                <div class="q">"Sede fortes e corajosos. Não temam..."</div>
+            </div>
         </div>
     </div>
 
