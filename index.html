@@ -7,11 +7,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EBD Nova Suíça">
-    <link rel="manifest" id="pwa-manifest">
-    <link rel="icon" type="image/jpeg" href="165057.jpg">
-    <link rel="apple-touch-icon" href="165057.jpg">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <link rel="apple-touch-icon" href="favicon.jpg">
     <title>EBD Digital · Nova Suíça</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.min.js"></script>
     <style>
         :root {
             --primary: #007AFF;
@@ -36,6 +37,7 @@
             --header-bg: rgba(242, 242, 247, 0.55);
             --glass-blur: 14px;
             --radius: 12px;
+            --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
         }
         
         [data-theme="dark"] {
@@ -138,7 +140,7 @@
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--border);
             box-shadow: var(--shadow);
         }
         
@@ -390,8 +392,8 @@
         /* ─────────────────────────────────────────────────────────────────────── */
         .toolbar {
             display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
         
         .tool-btn {
@@ -415,8 +417,8 @@
         }
         
         .tool-btn:active {
-            opacity: 0.7;
-            transform: scale(0.98);
+            opacity: 0.6;
+            transform: scale(0.96);
         }
 
         .tool-btn:hover {
@@ -428,6 +430,16 @@
             background: var(--primary);
             color: #FFFFFF;
             border-color: var(--primary);
+        }
+        .tool-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .tool-btn:disabled:hover {
+            transform: none !important;
+            opacity: 0.4;
         }
         
         /* ─────────────────────────────────────────────────────────────────────── */
@@ -1516,7 +1528,7 @@
             bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: #FFFFFF;
             padding: 10px 20px;
             border-radius: 10px;
@@ -1527,6 +1539,7 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.15s ease;
         }
         
         .toast.active {
@@ -1630,25 +1643,240 @@
         }
         
         @media print {
-            .no-print {
-                display: none !important;
-            }
+                    .no-print {
+                        display: none !important;
+                    }
             
-            body {
-                padding: 0;
-                background: #FFFFFF;
-                color: #000000;
-            }
+                    body {
+                        padding: 0;
+                        background: #FFFFFF;
+                        color: #000000;
+                    }
             
-            .aluno-card {
-                border: 1px solid #E5E5EA;
-                break-inside: avoid;
-                box-shadow: none;
-            }
-        }
-    </style>
-</head>
+                    .aluno-card {
+                        border: 1px solid #E5E5EA;
+                        break-inside: avoid;
+                        box-shadow: none;
+                    }
+                }
+
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* REDUCED MOTION — respeita prefêrencia do SO */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                @media (prefers-reduced-motion: reduce) {
+                    *, *::before, *::after {
+                        transition-duration: 0.01ms !important;
+                        animation-duration: 0.01ms !important;
+                    }
+                }
+
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* JORNADA CARDS (dinâmicos) */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                .jornada-card {
+                    background: var(--surface);
+                    border-radius: 12px;
+                    padding: 16px;
+                    margin: 12px;
+                    border: 1px solid var(--border);
+                    box-shadow: var(--shadow);
+                    transition: all 0.2s ease;
+                }
+                .jornada-card:hover {
+                    border-color: var(--primary);
+                    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
+                    transform: translateY(-2px);
+                }
+                .jc-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px;
+                }
+                .jc-header h3 {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: var(--text);
+                    margin: 0;
+                }
+                .jc-header .badge {
+                    background: var(--primary-dim);
+                    color: var(--primary);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+                .jc-stats {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                }
+                .jc-stats div {
+                    background: var(--surface-solid);
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    padding: 8px;
+                    text-align: center;
+                }
+                .jc-stats span {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: var(--primary);
+                }
+                .jc-resumo {
+                    font-size: 0.85rem;
+                    color: var(--text-muted);
+                    line-height: 1.5;
+                    margin-bottom: 12px;
+                }
+        
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* MEMÓRIAS LISTA DINÂMICA */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                .memorias-lista {
+                    padding: 0 12px 24px;
+                }
+                .memoria-card.memorizado {
+                    border-color: var(--success);
+                    background: var(--success-dim);
+                }
+                .memoria-card.memorizado .mv-ref {
+                    color: var(--success);
+                }
+                .mv-toggle {
+                    margin-top: 10px;
+                    padding: 6px 14px;
+                    border: 1px solid var(--border);
+                    border-radius: 20px;
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    background: var(--surface);
+                    color: var(--primary);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                .mv-toggle:hover {
+                    background: var(--primary);
+                    color: #FFFFFF;
+                    border-color: var(--primary);
+                }
+                .memoria-card.memorizado .mv-toggle {
+                    background: var(--success);
+                    color: #FFFFFF;
+                    border-color: var(--success);
+                }
+        
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* EXPORT BUTTON & SEARCH */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                .export-btn {
+                    background: var(--success);
+                    color: #FFFFFF;
+                    border: none;
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .export-btn:hover {
+                    background: #28a745;
+                    transform: translateY(-1px);
+                }
+                .export-btn:active {
+                    transform: scale(0.98);
+                }
+        
+                .search-wrapper {
+                    position: relative;
+                    margin-bottom: 12px;
+                }
+                .search-input {
+                    width: 100%;
+                    padding: 12px 16px 12px 40px;
+                    border: 1px solid var(--border);
+                    border-radius: 10px;
+                    background: var(--surface-solid);
+                    color: var(--text);
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                }
+                .search-input:focus {
+                    outline: none;
+                    border-color: var(--primary);
+                    box-shadow: 0 0 0 3px var(--primary-dim);
+                }
+                .search-input::placeholder {
+                    color: var(--text-muted);
+                }
+                .search-icon {
+                    position: absolute;
+                    left: 12px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--text-muted);
+                    pointer-events: none;
+                }
+        
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* ACESSIBILIDADE - FOCUS VISIBLE GLOBAL */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                *:focus-visible {
+                    outline: 2px solid var(--primary) !important;
+                    outline-offset: 2px !important;
+                }
+                button:focus-visible,
+                a:focus-visible,
+                input:focus-visible,
+                select:focus-visible,
+                textarea:focus-visible {
+                    outline: 2px solid var(--primary);
+                    outline-offset: 2px;
+                }
+        
+                /* Skip link para navegação por teclado */
+                .skip-link {
+                    position: absolute;
+                    top: -40px;
+                    left: 0;
+                    background: var(--primary);
+                    color: #FFFFFF;
+                    padding: 8px 16px;
+                    z-index: 9999;
+                    font-weight: 600;
+                    border-radius: 0 0 8px 0;
+                    transition: top 0.2s ease;
+                }
+                .skip-link:focus {
+                    top: 0;
+                }
+        
+                /* ─────────────────────────────────────────────────────────────────────── */
+                /* CHART.JS WRAPPER */
+                /* ─────────────────────────────────────────────────────────────────────── */
+                .campo-chart-wrapper {
+                    width: 100%;
+                    max-width: 100%;
+                    margin: 12px 0;
+                }
+                .campo-chart-wrapper canvas {
+                    max-width: 100%;
+                    height: auto !important;
+                }
+            </style>
+        </head>
 <body>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     <div id="main-content">
         <header>
             <div class="header-row">
@@ -1695,26 +1923,33 @@
             </div>
 
             <div class="toolbar">
-                <button class="tool-btn" onclick="abrirModoRapido()">⚡ Modo Rápido</button>
-                <button class="tool-btn success-btn" onclick="confirmarAcao('ENVIAR_RELATORIO')">Finalizar</button>
-            </div>
+                                        <button class="tool-btn" onclick="abrirModoRapido()">⚡ Modo Rápido</button>
+                                        <button class="tool-btn success-btn" onclick="confirmarAcao('ENVIAR_RELATORIO')">Finalizar</button>
+                                        <button class="tool-btn export-btn" onclick="exportarCSV()" aria-label="Exportar chamada para CSV">📊 Exportar CSV</button>
+                                        <button class="tool-btn warning-btn" onclick="syncToSheets()" aria-label="Sincronizar com Google Sheets">📋 Sheets</button>
+                                    </div>
 
-            <div class="search-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" class="search-box" placeholder="Buscar aluno..." oninput="render(this.value)">
-            </div>
+                        <div class="search-wrapper">
+                            <span class="search-icon" aria-hidden="true">🔍</span>
+                            <input type="text" class="search-input" placeholder="Buscar aluno..." oninput="render(this.value)" aria-label="Buscar aluno por nome">
+                        </div>
 
             <div class="progress-wrap">
-                <div class="progress-label">
-                    <span>Progresso</span>
-                    <span id="prog-txt">0%</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="prog-fill" style="width: 0%"></div>
-                </div>
-            </div>
+                            <div class="progress-label">
+                                <span>Progresso</span>
+                                <span id="prog-txt">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="prog-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
 
-            <div id="lista-alunos"></div>
+                        <!-- GRÁFICO DE FREQUÊNCIA -->
+                        <div class="campo-chart-wrapper" aria-label="Gráfico de frequência da turma">
+                            <canvas class="campo-chart" id="freqChart" role="img" aria-label="Gráfico de pizza: presentes, ausentes, visitantes"></canvas>
+                        </div>
+
+                        <div id="lista-alunos"></div>
         </div>
 
         <!-- TAB: RANKING -->
@@ -1819,21 +2054,32 @@
     </div>
 
     <!-- FAB ADMIN -->
-    <button class="fab-admin no-print" onclick="abrirAdmin()">⚙️</button>
+        <button class="fab-admin no-print" onclick="abrirAdmin()">⚙️</button>
+
+        <!-- MODULAR JS -->
+        <script src="js/app.store.js"></script>
+        <script src="js/app.router.js"></script>
+        <script src="js/app.chart.js"></script>
 
     <!-- BOTTOM NAV -->
-    <nav class="bottom-nav no-print">
-        <a href="javascript:void(0)" class="nav-item active" id="btn-chamada" onclick="switchTab('chamada')">
-            <i>📝</i><span>Chamada</span>
+    <nav class="bottom-nav no-print" role="navigation" aria-label="Navegação principal">
+        <a href="javascript:void(0)" class="nav-item active" id="btn-chamada" onclick="switchTab('chamada')" aria-current="page">
+            <i aria-hidden="true">📝</i><span>Chamada</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" id="btn-jornada" onclick="switchTab('jornada')">
+            <i aria-hidden="true">👤</i><span>Jornada</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" id="btn-memorias" onclick="switchTab('memorias')">
+            <i aria-hidden="true">📖</i><span>Memórias</span>
         </a>
         <a href="javascript:void(0)" class="nav-item" id="btn-ranking" onclick="switchTab('ranking')">
-            <i>🏆</i><span>Ranking</span>
+            <i aria-hidden="true">🏆</i><span>Ranking</span>
         </a>
         <a href="javascript:void(0)" class="nav-item" id="btn-historico" onclick="switchTab('historico')">
-            <i>📅</i><span>Histórico</span>
+            <i aria-hidden="true">📅</i><span>Histórico</span>
         </a>
         <a href="javascript:void(0)" class="nav-item" id="btn-caixa" onclick="switchTab('caixa')">
-            <i>💰</i><span>Caixa</span>
+            <i aria-hidden="true">💰</i><span>Caixa</span>
         </a>
     </nav>
 
@@ -1952,6 +2198,7 @@
     <script>
     // ── CONFIG & DATA ────────────────────────────────────────────────────────
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywWTGLvib-VE8S4u6Dr8SeovdDf6enjJDcYyNPgTJI5StNUF3qpCBQezAQeoK9QWqN/exec";
+    // SCRIPT_URL (Google Apps Script macro) — sem expor em summaries ou logs públicos
     
     let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
         { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
@@ -2079,21 +2326,355 @@
     function addPerg(nome, v) { haptic('light'); if (!presencas[nome]) presencas[nome] = { status: 'A', perguntas: 0, ofertou: false }; presencas[nome].perguntas = Math.max(0, presencas[nome].perguntas + v); save(); render(); }
 
     function updateStats() {
-        const total = db.filter(m => !m.oculto).length;
-        const p = Object.values(presencas).filter(x => x.status === 'P').length;
-        const a = total - p;
-        const v = Object.values(presencas).filter(x => x.status === 'V').length;
-        document.getElementById('stat-p').textContent = p;
-        document.getElementById('stat-a').textContent = a;
-        document.getElementById('stat-v').textContent = v;
-        const perc = total > 0 ? Math.round((p / total) * 100) : 0;
-        document.getElementById('prog-txt').textContent = perc + '%';
-        document.getElementById('prog-fill').style.width = perc + '%';
-        if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update(); }
-    }
+            const total = db.filter(m => !m.oculto).length;
+            const p = Object.values(presencas).filter(x => x.status === 'P').length;
+            const a = total - p;
+            const v = Object.values(presencas).filter(x => x.status === 'V').length;
+            document.getElementById('stat-p').textContent = p;
+            document.getElementById('stat-a').textContent = a;
+            document.getElementById('stat-v').textContent = v;
+            const perc = total > 0 ? Math.round((p / total) * 100) : 0;
+            document.getElementById('prog-txt').textContent = perc + '%';
+            document.getElementById('prog-fill').style.width = perc + '%';
+            if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update(); }
+        
+            // Atualiza gráfico de frequência (Chart.js)
+            renderFreqChart(p, a, v);
+        }
 
-    // ── MODO RÁPIDO ───────────────────────────────────────────────────────────
-    function abrirModoRapido() {
+    // ── GRÁFICO DE FREQUÊNCIA (Chart.js) ───────────────────────────────────────────
+        function renderFreqChart(p, a, v) {
+            const ctx = document.getElementById('freqChart');
+            if (!ctx) return;
+        
+            if (window.freqChart) {
+                window.freqChart.data.datasets[0].data = [p, a, v];
+                window.freqChart.update();
+                return;
+            }
+        
+            window.freqChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Presentes', 'Ausentes', 'Visitantes'],
+                    datasets: [{
+                        data: [p, a, v],
+                        backgroundColor: ['#34C759', '#FF3B30', '#FF9500'],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                padding: 12,
+                                font: { size: 11, family: 'system-ui' },
+                                color: '#666',
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                    return context.label + ': ' + context.raw + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1
+                }
+            });
+        }
+
+        // ── EXPORTAÇÃO CSV/PDF ───────────────────────────────────────────────────────────
+                function exportarCSV() {
+                    const total = db.filter(m => !m.oculto).length;
+                    if (total === 0) { showToast('Nenhum aluno para exportar'); return; }
+            
+                    const linhas = ['Nome,Apelido,Status,Perguntas,Ofertou,Data'];
+                    db.filter(m => !m.oculto).forEach(m => {
+                        const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
+                        const statusLabel = p.status === 'P' ? 'Presente' : (p.status === 'V' ? 'Visitante' : 'Ausente');
+                        linhas.push(`"${m.nome}","${m.apelido}","${statusLabel}",${p.perguntas},${p.ofertou ? 'Sim' : 'Não'}","${dataAula}"`);
+                    });
+            
+                    const csv = linhas.join('\n');
+                    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `chamada_${dataAula.replace(/\//g, '-')}.csv`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    showToast('✓ CSV exportado!');
+                }
+        
+                function exportarPDF() {
+                    const total = db.filter(m => !m.oculto).length;
+                    if (total === 0) { showToast('Nenhum aluno para exportar'); return; }
+            
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+            
+                    // Título
+                    doc.setFontSize(14);
+                    doc.text('Relatório de Chamada - EBD Nova Suíça', 14, 20);
+            
+                    // Cabeçalho da tabela
+                    const headers = ['Nome', 'Apelido', 'Status', 'Perguntas', 'Ofertou', 'Data'];
+                    const rows = [];
+            
+                    db.filter(m => !m.oculto).forEach(m => {
+                        const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
+                        const statusLabel = p.status === 'P' ? 'Presente' : (p.status === 'V' ? 'Visitante' : 'Ausente');
+                        rows.push([m.nome, m.apelido, statusLabel, String(p.perguntas), p.ofertou ? 'Sim' : 'Não', dataAula]);
+                    });
+            
+                    // Configurar tabela
+                    doc.autoTable({
+                        head: [headers],
+                        body: rows,
+                        startY: 30,
+                        theme: 'grid',
+                        margin: { left: 10, right: 10 }
+                    });
+            
+                    // Download
+                    doc.save(`chamada_${dataAula.replace(/\//g, '-')}.pdf`);
+                    showToast('✓ PDF exportado!');
+                }
+        
+                // ── INTEGRAÇÃO GOOGLE SHEETS ─────────────────────────────────────────────────
+                function syncToSheets() {
+                    const total = db.filter(m => !m.oculto).length;
+                    if (total === 0) { showToast('Nenhum aluno para sincronizar'); return; }
+            
+                    const url = SCRIPT_URL + '?action=syncChamada';
+            
+                    const alunos = db.filter(m => !m.oculto).map(m => ({
+                        nome: m.nome,
+                        apelido: m.apelido,
+                        status: presencas[m.nome]?.status || 'A',
+                        perguntas: presencas[m.nome]?.perguntas || 0,
+                        ofertou: presencas[m.nome]?.ofertou || false
+                    }));
+            
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: alunos, dataAula: dataAula })
+                    })
+                    .then(response => response.text())
+                    .then(result => {
+                        showToast('✓ Dados sincronizados com Google Sheets!');
+                    })
+                    .catch(error => {
+                        console.error('Erro ao sincronizar:', error);
+                        showToast('✗ Erro na sincronização');
+                    });
+                }
+
+        // ── APP BRIDGE (liga funções inline ao router modular) ─────────────────────────
+        var AppBridge = {
+        fetchRanking: window.fetchRanking,
+        fetchHistorico: window.renderHistorico,
+        fetchCaixa: window.fetchCaixa
+    };
+
+    // ── JORNADA MODULE ────────────────────────────────────────────────────────────
+    var Jornada = {
+        init: function() {
+            this.renderJornada();
+        },
+        renderJornada: function() {
+            var data = Store.get('jornada', { alunos: [] });
+            var container = document.getElementById('tab-jornada');
+            if (!container) return;
+        
+            // Se não há dados, mostra estado vazio com botão para criar
+            if (!data.alunos.length) {
+                container.innerHTML = '\
+                    <div class="empty-state">\
+                        <div class="icon">👤</div>\
+                        <p>Nenhuma jornada registrada.</p>\
+                        <button class="tool-btn success-btn" onclick="Jornada.criarNova()">+ Nova Jornada</button>\
+                    </div>';
+                return;
+            }
+        
+            // Render dos cards de jornada existentes
+            container.innerHTML = data.alunos.map(function(a) {
+                return '\
+                    <div class="jornada-card">\
+                        <div class="jc-header">\
+                            <h3>' + (a.nome || 'Sem nome') + '</h3>\
+                            <span class="badge">' + (a.serie || '—') + '</span>\
+                        </div>\
+                        <div class="jc-stats">\
+                            <div><span>' + (a.totalAulas || 0) + '</span> aulas</div>\
+                            <div><span>' + (a.presencaPct || 0) + '%</span> presença</div>\
+                            <div><span>' + (a.faltas || 0) + '</span> faltas</div>\
+                        </div>\
+                        <div class="jc-resumo">' + (a.resumo || 'Sem resumo') + '</div>\
+                        <button class="tool-btn secondary-btn small" onclick="Jornada.editar(' + a.id + ')">Editar</button>\
+                    </div>';
+            }).join('');
+        },
+        criarNova: function() {
+            var nome = prompt('Nome do aluno:');
+            if (!nome) return;
+            var serie = prompt('Série/Turma:') || '—';
+            var data = Store.get('jornada', { alunos: [] });
+            var novo = { id: Date.now(), nome: nome.toUpperCase(), serie: serie, totalAulas: 0, presencaPct: 0, faltas: 0, resumo: '' };
+            data.alunos.push(novo);
+            Store.set('jornada', data);
+            this.renderJornada();
+        },
+        editar: function(id) {
+            var data = Store.get('jornada', { alunos: [] });
+            var aluno = data.alunos.find(function(a) { return a.id === id; });
+            if (!aluno) return;
+        
+            var totalAulas = prompt('Total de aulas:', aluno.totalAulas);
+            if (totalAulas === null) return;
+            var presenca = prompt('Presença (%):', aluno.presencaPct);
+            if (presenca === null) return;
+            var faltas = prompt('Faltas:', aluno.faltas);
+            if (faltas === null) return;
+            var resumo = prompt('Resumo:', aluno.resumo);
+            if (resumo === null) return;
+        
+            aluno.totalAulas = parseInt(totalAulas) || 0;
+            aluno.presencaPct = parseInt(presenca) || 0;
+            aluno.faltas = parseInt(faltas) || 0;
+            aluno.resumo = resumo;
+            Store.set('jornada', data);
+            this.renderJornada();
+        }
+    };
+
+    // ── MEMÓRIAS MODULE ────────────────────────────────────────────────────────────
+    var Memorias = {
+        versiculosPadrao: [
+            { ref: 'João 3:16', texto: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito...', dia: 'Segunda' },
+            { ref: 'Salmos 23:1', texto: 'O Senhor é o meu pastor, nada me falta.', dia: 'Terça' },
+            { ref: 'Filipenses 4:13', texto: 'Tudo posso naquele que me fortalece.', dia: 'Quarta' },
+            { ref: 'Romanos 8:28', texto: 'Todas as coisas contribuem para o bem daqueles que amam a Deus...', dia: 'Quinta' },
+            { ref: 'Isaías 41:10', texto: 'Não temas, porque eu sou contigo...', dia: 'Sexta' },
+            { ref: 'Provérbios 3:5-6', texto: 'Confia no Senhor de todo o teu coração...', dia: 'Sábado' },
+            { ref: 'Mateus 6:33', texto: 'Buscai primeiro o reino de Deus...', dia: 'Domingo' }
+        ],
+        init: function() {
+            this.renderMemorias();
+        },
+        renderMemorias: function() {
+            var data = Store.get('memorias', { versiculos: [], memorizados: {} });
+            var container = document.getElementById('tab-memorias');
+            if (!container) return;
+        
+            // Mescla versículos padrão com salvos
+            var todos = this.versiculosPadrao.map(function(v, i) {
+                var salvo = data.versiculos.find(function(s) { return s.ref === v.ref; });
+                return {
+                    ref: v.ref,
+                    texto: salvo ? salvo.texto : v.texto,
+                    dia: v.dia,
+                    memorizado: !!data.memorizados[v.ref],
+                    streak: data.memorizados[v.ref] ? data.memorizados[v.ref].streak || 0 : 0
+                };
+            });
+        
+            var memorizadosCount = todos.filter(function(v) { return v.memorizado; }).length;
+        
+            container.innerHTML = '\
+                <div class="memorias-header">\
+                    <h2>Memórias</h2>\
+                    <div class="sub">Deixando a Palavra em sua mente</div>\
+                </div>\
+                <div class="memoria-progress">\
+                    <span class="mp-lbl">Este mês</span>\
+                    <span class="mp-num">' + memorizadosCount + ' / ' + todos.length + '</span>\
+                    <div class="mp-barbg"><div class="mp-barfill" style="width:' + Math.round((memorizadosCount/todos.length)*100) + '%"></div></div>\
+                </div>\
+                <div class="memorias-lista">' + todos.map(function(v) {
+                    return '\
+                        <div class="memoria-card' + (v.memorizado ? ' memorizado' : '') + '" data-ref="' + v.ref + '">\
+                            <div class="mv-ref">' + v.ref + '</div>\
+                            <div class="mv-verso">' + v.texto + '</div>\
+                            <div class="mv-hook">' + v.dia + ' · ' + (v.memorizado ? '✅ Memorizado (' + v.streak + ' dias)' : 'Em revisão') + '</div>\
+                            <button class="mv-toggle" onclick="Memorias.toggleMemorizado(\'' + v.ref + '\')">' + (v.memorizado ? 'Desmarcar' : 'Marcar como memorizado') + '</button>\
+                        </div>';
+                }).join('') + '</div>\
+                <div class="memoria-footer">\
+                    Domingo: lembre-se de repassar o versículo da semana antes da ceia.\
+                    <div class="q">"Sede fortes e corajosos. Não temam..."</div>\
+                </div>';
+        },
+        toggleMemorizado: function(ref) {
+            var data = Store.get('memorias', { versiculos: [], memorizados: {} });
+            var hoje = new Date().toISOString().split('T')[0];
+        
+            if (!data.memorizados[ref]) {
+                data.memorizados[ref] = { data: hoje, streak: 1 };
+                showToast('✅ Versículo memorizado!');
+            } else {
+                // Verifica se é dia consecutivo
+                var ultima = data.memorizados[ref].data;
+                var diff = (new Date(hoje) - new Date(ultima)) / (1000*60*60*24);
+                if (diff === 1) {
+                    data.memorizados[ref].streak += 1;
+                } else if (diff > 1) {
+                    data.memorizados[ref].streak = 1;
+                }
+                data.memorizados[ref].data = hoje;
+                showToast('🔥 Streak: ' + data.memorizados[ref].streak + ' dias!');
+            }
+            Store.set('memorias', data);
+            this.renderMemorias();
+        }
+    };
+
+    // ── NOTIFICAÇÕES MODULE ────────────────────────────────────────────────────────
+    var Notificacoes = {
+        init: function() {
+            if ('Notification' in window) {
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission().then(function(perm) {
+                        if (perm === 'granted') showToast('🔔 Notificações ativadas!');
+                    });
+                }
+            }
+            this.agendarLembretes();
+        },
+        agendarLembretes: function() {
+            // Lembrete diário às 19h para revisar versículo
+            var agora = new Date();
+            var alvo = new Date();
+            alvo.setHours(19, 0, 0, 0);
+            if (alvo <= agora) alvo.setDate(alvo.getDate() + 1);
+        
+            var ms = alvo - agora;
+            setTimeout(function() {
+                Notificacoes.mostrar('Hora do versículo! 📖', 'Repasse o versículo da semana antes da ceia.');
+                Notificacoes.agendarLembretes(); // Reagenda para amanhã
+            }, ms);
+        },
+        mostrar: function(titulo, corpo) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(titulo, { body: corpo, icon: '/icon-192.png' });
+            }
+        }
+    };
         haptic('medium');
         rapidoLista = db.filter(m => !m.oculto).sort((a, b) => a.nome.localeCompare(b.nome));
         rapidoIdx = 0;
@@ -2365,17 +2946,19 @@
     function limparFormAdmin() { document.getElementById('editIndex').value = "-1"; document.getElementById('membroNome').value = ""; document.getElementById('membroApelido').value = ""; document.getElementById('btnSalvarMembro').textContent = "SALVAR"; document.getElementById('btnCancelaEdit').style.display = 'none'; }
 
     function switchTab(t) {
-        document.querySelectorAll('.tab-content').forEach(v => v.classList.remove('active'));
-        document.getElementById('tab-' + t).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('btn-' + t).classList.add('active');
-        if (t === 'ranking') fetchRanking();
-        if (t === 'historico') renderHistorico();
-        if (t === 'caixa') fetchCaixa();
-    }
+            AppRouter.switch(t);
+        }
 
     function save() { localStorage.setItem('ebd_hoje_v36', JSON.stringify(presencas)); localStorage.setItem('ebd_db_v36', JSON.stringify(db)); }
-    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2500); }
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.setAttribute('role', 'status');
+        t.setAttribute('aria-live', 'polite');
+        t.setAttribute('aria-atomic', 'true');
+        t.classList.add('active');
+        setTimeout(() => t.classList.remove('active'), 2500);
+    }
     function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('ebd_theme', t); }
 
     function verDetalhesHistorico(i) {
@@ -2396,16 +2979,28 @@
     }
 
     window.onload = () => {
-        inicializarUsuario();
-        document.documentElement.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
-        document.getElementById('data-label').textContent = dataAula;
-        window.miniChart = new Chart(document.getElementById('miniChart'), {
-            type: 'doughnut',
-            data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#34C759', '#FF3B30', '#FF9500'], borderWidth: 0 }] },
-            options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-        });
-        render();
-    };
+            inicializarUsuario();
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
+            document.getElementById('data-label').textContent = dataAula;
+            window.miniChart = new Chart(document.getElementById('miniChart'), {
+                type: 'doughnut',
+                data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#34C759', '#FF3B30', '#FF9500'], borderWidth: 0 }] },
+                options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+            });
+            render();
+
+            // Inicializa módulos novos
+            Jornada.init && Jornada.init();
+            Memorias.init && Memorias.init();
+            Notificacoes.init && Notificacoes.init();
+
+            // Registra o Service Worker para PWA offline
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('✓ SW registrado'))
+                    .catch((e) => console.warn('SW: falha no registro', e));
+            }
+        };
     </script>
 </body>
 </html>
