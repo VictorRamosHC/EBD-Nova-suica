@@ -1,11 +1,11 @@
 {
   "name": "EBD Nova Suíça",
-  "short_name": "EBD Nova Suíça",
-  "description": "Sistema de Chamada e Acompanhamento EBD - Nova Suíça",
+  "short_name": "EBD Digital",
+  "description": "Sistema de Gestão Eclesiástica e Chamada EBD — Nova Suíça",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F2F2F7",
-  "theme_color": "#007AFF",
+  "background_color": "#0A0F1D",
+  "theme_color": "#0A0F1D",
   "icons": [
     {
       "src": "favicon.jpg",
@@ -14,7 +14,7 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "productivity"],
+  "categories": ["education", "productivity", "religion"],
   "prefer_related_applications": false,
   "scope": "/",
   "lang": "pt-BR"

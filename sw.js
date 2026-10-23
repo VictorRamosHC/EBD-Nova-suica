@@ -1,20 +1,38 @@
-// Service Worker para EBD Nova Suíça
-const CACHE_NAME = 'ebd-v1';
+// Service Worker para EBD Nova Suíça (v2 Modular - Neo-Sacred Glass)
+const CACHE_NAME = 'ebd-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.jpg',
-  '/background_ebd_1.jpg'
+  '/background_ebd_1.jpg',
+  '/css/tokens.css',
+  '/css/layout.css',
+  '/css/components.css',
+  '/js/app.js',
+  '/js/core/store.js',
+  '/js/core/router.js',
+  '/js/core/haptics.js',
+  '/js/modules/chamada.js',
+  '/js/modules/modoRapido.js',
+  '/js/modules/caixa.js',
+  '/js/modules/ranking.js',
+  '/js/modules/memorias.js',
+  '/js/modules/sync.js',
+  '/js/modules/admin.js'
 ];
 
-// Instalação: cache dos assets estáticos
+// Instalação: cache resiliente dos assets estáticos
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('SW: erro no install cache', err);
-      });
+      return Promise.allSettled(
+        STATIC_ASSETS.map((asset) => 
+          cache.add(asset).catch((err) => {
+            console.warn('[SW] Falha ao cachear asset estático:', asset, err);
+          })
+        )
+      );
     })
   );
   self.skipWaiting();
@@ -32,7 +50,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: estratégia cache-first para assets estáticos, network-first para HTML
+// Fetch: estratégia cache-first com runtime caching para CDN (Chart.js / jsPDF) e network-first para APIs
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -46,52 +64,41 @@ self.addEventListener('fetch', (event) => {
   if (event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match(event.request).then(( cached ) => {
-          return cached || caches.match('/index.html');
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match('/index.html') || caches.match('/');
         });
       })
     );
     return;
   }
 
-  // Para demais recursos (js, css, imagens): cache-first com validação de staleness
+  // Para recursos estáticos (js, css, imagens, cdn): cache-first com runtime caching
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) {
-        // Clona a requisição para não consumir o stream
-        const networkPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse.ok) {
+        // Atualização em background (stale-while-revalidate)
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.ok && event.request.method === 'GET') {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, clone);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
-          return networkResponse;
-        }).catch(() => {
-          // Fallback silencioso se rede falhar
-        });
+        }).catch(() => {});
         return cached;
       }
-      return fetch(event.request).catch(() => {
-        // Se o recurso não está em cache e a rede falha, mostra erro gentle
+
+      // Se não está em cache, busca na rede e guarda em cache (para CDN js/css/fontes)
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.ok && event.request.method === 'GET') {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
         if (event.request.destination === 'image') {
           return caches.match('/background_ebd_1.jpg');
         }
-        return new Response('Recurso não disponível offline', { status: 503 });
+        return new Response('Recurso offline indisponível', { status: 503 });
       });
     })
   );
 });
-
-// Background sync para quando a conexão voltar (opcional, extensível)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-chamados') {
-    event.waitUntil(syncPendingData());
-  }
-});
-
-async function syncPendingData() {
-  // Hook para sincronização de dados pendentes quando online
-  // Pode ser expandido para enqueue de chamadas não enviadas
-  console.log('[SW] sync-chamados: verificando dados pendentes');
-}

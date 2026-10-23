@@ -1,0 +1,109 @@
+/* ==========================================================================
+   EBD NOVA SUÍÇA — DESIGN SYSTEM: NEO-SACRED GLASS TOKENS
+   Cores Sagradas: Navy Obsidian, Ouro Sacro, Celestial Blue, Alabastro
+   ========================================================================== */
+
+:root {
+  /* Paleta Base — Neo-Sacred Glass (Dark Mode Padrão) */
+  --bg-deep: #0A0F1D;
+  --bg-subtle: #0F172A;
+  --bg-card: rgba(15, 23, 42, 0.72);
+  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --bg-card-solid: #1E293B;
+  --surface-glass: rgba(15, 23, 42, 0.65);
+  --surface-modal: rgba(11, 17, 32, 0.92);
+
+  /* Acentos Sagrados */
+  --gold-primary: #D4AF37;
+  --gold-light: #F6E05E;
+  --gold-dim: rgba(212, 175, 55, 0.15);
+  --gold-glow: 0 0 20px rgba(212, 175, 55, 0.25);
+
+  --blue-celestial: #2563EB;
+  --blue-light: #60A5FA;
+  --blue-dim: rgba(37, 99, 235, 0.15);
+  --blue-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+
+  /* Status Semânticos */
+  --status-presente: #10B981;
+  --status-presente-dim: rgba(16, 185, 129, 0.15);
+  --status-ausente: #EF4444;
+  --status-ausente-dim: rgba(239, 68, 68, 0.15);
+  --status-visitante: #F59E0B;
+  --status-visitante-dim: rgba(245, 158, 11, 0.15);
+
+  /* Texto & Alabastro */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-gold: #FCD34D;
+
+  /* Bordas & Vidro */
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-gold: rgba(212, 175, 55, 0.28);
+  --border-glass-hover: rgba(255, 255, 255, 0.18);
+  --blur-glass: blur(16px);
+  --blur-header: blur(20px);
+
+  /* Sombras */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.2);
+
+  /* Dimensões & Ergonomia Mobile */
+  --touch-target: 48px;
+  --header-height: 64px;
+  --bottom-nav-height: 68px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Fontes */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+  --font-serif: "Cinzel", "Georgia", "Cambria", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Modo Claro (Alabastro Sagrado) */
+[data-theme="light"] {
+  --bg-deep: #F1F5F9;
+  --bg-subtle: #E2E8F0;
+  --bg-card: rgba(255, 255, 255, 0.78);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-solid: #FFFFFF;
+  --surface-glass: rgba(255, 255, 255, 0.75);
+  --surface-modal: rgba(255, 255, 255, 0.96);
+
+  --gold-primary: #B8860B;
+  --gold-light: #D4AF37;
+  --gold-dim: rgba(184, 134, 11, 0.12);
+  --gold-glow: 0 0 16px rgba(184, 134, 11, 0.2);
+
+  --blue-celestial: #1D4ED8;
+  --blue-light: #3B82F6;
+  --blue-dim: rgba(29, 78, 216, 0.12);
+  --blue-glow: 0 0 16px rgba(29, 78, 216, 0.2);
+
+  --status-presente: #059669;
+  --status-presente-dim: rgba(5, 150, 105, 0.12);
+  --status-ausente: #DC2626;
+  --status-ausente-dim: rgba(220, 38, 38, 0.12);
+  --status-visitante: #D97706;
+  --status-visitante-dim: rgba(217, 119, 6, 0.12);
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-gold: #92400E;
+
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --border-glass-gold: rgba(184, 134, 11, 0.3);
+  --border-glass-hover: rgba(15, 23, 42, 0.16);
+
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --shadow-gold: 0 4px 16px rgba(184, 134, 11, 0.15);
+}

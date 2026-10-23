@@ -1,0 +1,12 @@
+{
+  "name": "ebd-nova-suica",
+  "version": "2.0.0",
+  "description": "Sistema de Gestão Eclesiástica e Chamada EBD — Nova Suíça (Neo-Sacred Glass PWA)",
+  "type": "module",
+  "scripts": {
+    "test": "node test_suite.mjs"
+  },
+  "keywords": ["ebd", "pwa", "church", "management"],
+  "author": "Hugh Development",
+  "license": "MIT"
+}

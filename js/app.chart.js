@@ -1,19 +1,6 @@
-// ChartLib — wrapper minimalista para Chart.js
+// Shim de compatibilidade para ChartLib
 var ChartLib = {
-  chartEl: null,
-  targetCanvasClass: '.campo-chart',
-  render: function(canvasEl) {
-    if (!canvasEl) return;
-    console.log('[ChartLib] render chamado para:', canvasEl);
-  },
-  update: function(chart, data) {
-    if (!chart) return;
-    chart.data.datasets[0].data = data;
-    chart.update();
-  },
-  destroy: function(chart) {
-    if (chart) {
-      chart.destroy();
-    }
-  }
+  render: function(canvasEl) {},
+  update: function(chart, data) { if (chart && chart.data) { chart.data.datasets[0].data = data; chart.update(); } },
+  destroy: function(chart) { if (chart) chart.destroy(); }
 };

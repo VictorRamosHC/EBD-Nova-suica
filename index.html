@@ -1,3006 +1,374 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#007AFF">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0A0F1D">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EBD Nova Suíça">
+    <meta name="description" content="Sistema Soberano de Gestão Eclesiástica e Chamada EBD — Igreja Nova Suíça">
+
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <link rel="apple-touch-icon" href="favicon.jpg">
+
     <title>EBD Digital · Nova Suíça</title>
+
+    <!-- Google Fonts (Cinzel para elegância litúrgica / Inter para UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Design System: Neo-Sacred Glass -->
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <!-- Dependências Externas (Chart.js + jsPDF + autoTable) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.min.js"></script>
-    <style>
-        :root {
-            --primary: #007AFF;
-            --primary-light: #5AC8FA;
-            --primary-dim: rgba(0, 122, 255, 0.08);
-            --success: #34C759;
-            --success-dim: rgba(52, 199, 89, 0.08);
-            --danger: #FF3B30;
-            --danger-dim: rgba(255, 59, 48, 0.08);
-            --warning: #FF9500;
-            --warning-dim: rgba(255, 149, 0, 0.08);
-            /* fundo base (atras do vidro) */
-            --bg: #F2F2F7;
-            /* superficies TRANSLUCIDAS p/ glassmorphism real */
-            --surface: rgba(255, 255, 255, 0.62);
-            --surface-solid: #FFFFFF;
-            --surface2: rgba(255, 255, 255, 0.45);
-            --text: #000000;
-            --text-muted: #8E8E93;
-            --border: rgba(255, 255, 255, 0.55);
-            --shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-            --header-bg: rgba(242, 242, 247, 0.55);
-            --glass-blur: 14px;
-            --radius: 12px;
-            --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-        }
-        
-        [data-theme="dark"] {
-            --bg: #1C1C1E;
-            --surface: rgba(44, 44, 46, 0.65);
-            --surface-solid: #2C2C2E;
-            --surface2: rgba(58, 58, 60, 0.55);
-            --text: #FFFFFF;
-            --text-muted: #98989D;
-            --border: rgba(255, 255, 255, 0.15);
-            --shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-            --header-bg: rgba(28, 28, 30, 0.7);
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 0 0 110px 0;
-            transition: background 0.3s ease, color 0.3s ease;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* FUNDO DECORATIVO ATRAS DO VIDRO (glassmorphism real) */
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background-image:
-                radial-gradient(circle at 15% 18%, rgba(0, 122, 255, 0.20), transparent 42%),
-                radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.18), transparent 40%),
-                radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.16), transparent 45%),
-                radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.16), transparent 45%),
-                url('background_ebd_1.jpg');
-            background-size: cover, cover, cover, cover, cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--bg);
-            opacity: 0.9;
-        }
-        [data-theme="dark"] body::before {
-            background-image:
-                radial-gradient(circle at 15% 18%, rgba(0, 122, 255, 0.28), transparent 42%),
-                radial-gradient(circle at 85% 12%, rgba(255, 149, 0, 0.20), transparent 40%),
-                radial-gradient(circle at 75% 85%, rgba(52, 199, 89, 0.18), transparent 45%),
-                radial-gradient(circle at 25% 80%, rgba(175, 82, 222, 0.20), transparent 45%),
-                url('background_ebd_1.jpg');
-            background-size: cover, cover, cover, cover, cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--bg);
-            opacity: 0.55;
-        }
-
-        body.modal-open {
-            overflow: hidden;
-        }
-
-        /* GLASS: so os elementos principais (header/nav/modais) recebem blur forte.
-           cards pequenos usam blur leve p/ nao sobrecarregar o GPU no mobile. */
-        header, .bottom-nav, .modal-content, .modal-box {
-            backdrop-filter: blur(var(--glass-blur, 14px));
-            -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
-        }
-        .stat-pill, .rank-card, .hist-card, .mov-card,
-        .card, .nav-tabs, .date-badge, .admin-card-item,
-        .user-badge, .tool-btn, .fechamento, .icon-btn {
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        body.modal-open #main-content {
-            filter: blur(6px);
-            transition: filter 0.3s ease;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* HEADER - iOS Glassmorphism */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--header-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            padding: 12px 16px;
-            border-bottom: 2px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-        
-        .header-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .logo-wrap {
-            width: 44px;
-            height: 44px;
-            flex-shrink: 0;
-            border-radius: 10px;
-            overflow: hidden;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #miniChart {
-            width: 44px !important;
-            height: 44px !important;
-        }
-        
-        .header-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .church-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            letter-spacing: -0.3px;
-        }
-        
-        .date-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 4px;
-            flex-wrap: wrap;
-        }
-        
-        .date-text {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-        
-        .date-badge {
-            background: var(--primary-dim);
-            color: var(--primary);
-            border: 1px solid rgba(0, 122, 255, 0.2);
-            padding: 3px 10px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .date-badge:active {
-            opacity: 0.7;
-            transform: scale(0.98);
-        }
-
-        .date-badge:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        
-        .icon-btn {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow);
-        }
-        
-        .icon-btn:active {
-            opacity: 0.7;
-            transform: scale(0.95);
-        }
-
-        .icon-btn:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        .user-badge {
-            background: var(--primary);
-            color: #FFFFFF;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        }
-        
-        .user-badge:active {
-            opacity: 0.8;
-            transform: scale(0.98);
-        }
-
-        .user-badge:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* STATS BAR */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin: 16px 16px 12px 16px;
-        }
-        
-        .stat-pill {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px 8px;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-        
-        .stat-num {
-            font-size: 1.5rem;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: -0.3px;
-        }
-        
-        .stat-lbl {
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-top: 6px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-        
-        .stat-pill.s-p .stat-num {
-            color: var(--success);
-        }
-        
-        .stat-pill.s-p .stat-lbl {
-            color: var(--success);
-        }
-        
-        .stat-pill.s-a .stat-num {
-            color: var(--danger);
-        }
-        
-        .stat-pill.s-a .stat-lbl {
-            color: var(--danger);
-        }
-        
-        .stat-pill.s-v .stat-num {
-            color: var(--warning);
-        }
-        
-        .stat-pill.s-v .stat-lbl {
-            color: var(--warning);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* MAIN CONTENT */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        #main-content {
-            padding: 0 16px 120px 16px;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* NAV TABS */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .nav-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-            background: var(--surface);
-            padding: 6px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-        }
-        
-        .nav-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background: none;
-            color: var(--text-muted);
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            min-width: fit-content;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .nav-btn.active {
-            background: var(--primary);
-            color: #FFFFFF;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* TOOLBAR */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .tool-btn {
-            flex: 1;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .tool-btn:active {
-            opacity: 0.6;
-            transform: scale(0.96);
-        }
-
-        .tool-btn:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        .tool-btn.success-btn {
-            background: var(--primary);
-            color: #FFFFFF;
-            border-color: var(--primary);
-        }
-        .tool-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        .tool-btn:disabled:hover {
-            transform: none !important;
-            opacity: 0.4;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* SEARCH */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .search-wrap {
-            position: relative;
-            margin-bottom: 14px;
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
-            pointer-events: none;
-            color: var(--text-muted);
-        }
-        
-        .search-box {
-            width: 100%;
-            padding: 10px 12px 10px 36px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            font-size: 16px;
-            background: var(--surface);
-            color: var(--text);
-            outline: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow);
-        }
-        
-        .search-box:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-dim);
-        }
-
-        .search-box:hover {
-            border-color: var(--primary-light);
-        }
-
-        .search-box::placeholder {
-            color: var(--text-muted);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* PROGRESS BAR */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .progress-wrap {
-            margin-bottom: 14px;
-        }
-        
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        
-        .progress-bar-bg {
-            background: var(--surface2);
-            border-radius: 4px;
-            height: 4px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            transition: width 0.4s ease;
-            border-radius: 4px;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* ALUNO CARD */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .aluno-card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            transition: all 0.2s ease;
-        }
-        
-        .aluno-card.presente {
-            border-color: var(--success);
-            background: linear-gradient(135deg, var(--surface) 0%, var(--success-dim) 100%);
-        }
-        
-        .aluno-card.ausente {
-            border-color: var(--border);
-        }
-
-        .aluno-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .aluno-card.visitante-cor {
-            border-color: var(--warning);
-            background: linear-gradient(135deg, var(--surface) 0%, var(--warning-dim) 100%);
-        }
-        
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-        
-        .card-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            line-height: 1.3;
-            color: var(--text);
-            letter-spacing: -0.2px;
-        }
-        
-        .card-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 2px;
-        }
-        
-        .oferta-btn {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            padding: 6px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-        
-        .oferta-btn.ativo {
-            background: var(--warning-dim);
-            border-color: var(--warning);
-        }
-        
-        .btn-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 6px;
-        }
-        
-        .btn {
-            border: 1px solid var(--border);
-            padding: 8px 6px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.75rem;
-            background: var(--surface2);
-            color: var(--text-muted);
-            transition: all 0.15s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-        }
-
-        .btn:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        .btn-p.active {
-            background: var(--success-dim);
-            color: var(--success);
-            border-color: var(--success);
-        }
-        
-        .btn-a.active {
-            background: var(--danger-dim);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-        
-        .btn-v.active {
-            background: var(--warning-dim);
-            color: var(--warning);
-            border-color: var(--warning);
-        }
-        
-        .counter-box {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--surface2);
-            border-radius: 8px;
-            padding: 0 8px;
-            border: 1px solid var(--border);
-            min-width: 80px;
-            justify-content: space-between;
-        }
-        
-        .counter-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary);
-            padding: 6px 4px;
-            line-height: 1;
-            transition: all 0.15s ease;
-        }
-        
-        .counter-btn:active {
-            opacity: 0.6;
-        }
-        
-        .counter-val {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* RANKING */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .rank-card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            transition: all 0.2s ease;
-        }
-
-        .rank-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-            border-color: var(--primary);
-        }
-
-        .rank-pos {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            min-width: 32px;
-            text-align: center;
-        }
-        
-        .rank-pos.gold {
-            color: #FF9500;
-        }
-        
-        .rank-pos.silver {
-            color: #A2AAAD;
-        }
-        
-        .rank-pos.bronze {
-            color: #CD7F32;
-        }
-        
-        .rank-info {
-            flex: 1;
-            padding: 0 12px;
-        }
-        
-        .rank-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.2px;
-        }
-        
-        .rank-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-        
-        .rank-pts {
-            background: var(--primary-dim);
-            color: var(--primary);
-            border: 1px solid rgba(0, 122, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        
-        .rank-loading {
-            text-align: center;
-            padding: 40px 20px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* HISTÓRICO */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .hist-card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .hist-card:active {
-            opacity: 0.7;
-            transform: scale(0.99);
-        }
-
-        .hist-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-            border-color: var(--primary);
-        }
-
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* JORNADA */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .jornada-header {
-            text-align: center;
-            padding: 20px 0 12px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-        }
-        .jornada-header h2 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: var(--primary);
-        }
-        .jornada-header .sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .jornada-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 12px;
-            background: var(--surface);
-            margin: 12px;
-            border-radius: 12px;
-        }
-        .jornada-section {
-            background: var(--surface-solid);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            min-height: 70px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .jornada-section:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
-            transform: translateY(-1px);
-        }
-        .jornada-section .label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-        .jornada-section .val {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .jornada-section .val span {
-            color: var(--primary);
-        }
-        .jornada-resumo {
-            background: var(--surface);
-            margin: 0 12px 12px;
-            border-radius: 12px;
-            padding: 16px;
-            border-left: 4px solid var(--primary);
-        }
-        .jornada-resumo .r-lbl {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .jornada-resumo .r-line {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--text);
-            margin-bottom: 6px;
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-        }
-        .jornada-resumo .r-line .emoji {
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        .jornada-hook {
-            text-align: center;
-            padding: 16px 12px 24px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-        .jornada-hook .q {
-            color: var(--primary);
-            font-weight: 600;
-            margin: 8px 0;
-        }
-
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* MEMÓRIAS */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .memorias-header {
-            text-align: center;
-            padding: 20px 0 8px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-        }
-        .memorias-header h2 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 2px;
-            color: var(--primary);
-        }
-        .memorias-header .sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .memoria-card {
-            margin: 12px;
-            border-radius: 14px;
-            background: var(--surface-solid);
-            border: 1px solid var(--border);
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .memoria-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        .memoria-card .mv-ref {
-            font-size: 0.75rem;
-            color: var(--primary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 8px;
-        }
-        .memoria-card .mv-verso {
-            font-size: 1.05rem;
-            line-height: 1.6;
-            font-style: italic;
-            color: var(--text);
-            margin-bottom: 10px;
-        }
-        .memoria-card .mv-hook {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-        .memoria-card .mv-check {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .memoria-card .mv-check.marcado {
-            background: var(--success-dim);
-            color: var(--success);
-            border-color: var(--success);
-        }
-        .memoria-progress {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 12px;
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-        }
-        .memoria-progress .mp-lbl {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: var(--text-muted);
-        }
-        .memoria-progress .mp-num {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .memoria-progress .mp-barbg {
-            flex: 1;
-            height: 6px;
-            background: var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .memoria-progress .mp-barfill {
-            height: 100%;
-            background: var(--success);
-            border-radius: 6px;
-            transition: width 0.4s ease;
-        }
-        .memoria-footer {
-            text-align: center;
-            padding: 16px;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-        .memoria-footer .q {
-            color: var(--primary);
-            font-weight: 600;
-            margin-top: 4px;
-        }
-
-
-        .hist-date {
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.2px;
-        }
-        
-        .hist-stats {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-        }
-        
-        .hist-badge {
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-        }
-        
-        .hist-badge.p {
-            background: var(--success-dim);
-            color: var(--success);
-        }
-        
-        .hist-badge.a {
-            background: var(--danger-dim);
-            color: var(--danger);
-        }
-        
-        .hist-badge.v {
-            background: var(--warning-dim);
-            color: var(--warning);
-        }
-        
-        .hist-prof {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        
-        .hist-responsavel {
-            font-size: 0.7rem;
-            font-weight: 600;
-            background: var(--primary-dim);
-            color: var(--primary);
-            padding: 3px 10px;
-            border-radius: 8px;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* CAIXA */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .card-caixa {
-            background: var(--primary);
-            color: #FFFFFF;
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
-            text-align: center;
-        }
-        
-        .saldo-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .saldo-val {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-top: 8px;
-            letter-spacing: -0.5px;
-        }
-        
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .btn-fin {
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            background: var(--surface);
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.3px;
-            box-shadow: var(--shadow);
-        }
-        
-        .btn-fin:active {
-            opacity: 0.7;
-            transform: scale(0.98);
-        }
-
-        .btn-fin:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-
-        .btn-fin.entrada {
-            background: var(--success);
-            color: #FFFFFF;
-            border-color: var(--success);
-        }
-        
-        .mov-card {
-            background: var(--surface);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
-        }
-
-        .mov-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-            border-color: var(--primary);
-        }
-
-        .mov-remover {
-            background: transparent;
-            border: 1px solid var(--border, #ddd);
-            color: var(--danger, #e74c3c);
-            border-radius: 8px;
-            width: 30px;
-            height: 30px;
-            font-size: 14px;
-            cursor: pointer;
-            flex-shrink: 0;
-            align-self: center;
-            margin-left: 8px;
-        }
-        .mov-remover:hover { background: rgba(231,76,60,0.1); }
-
-
-        .mov-desc {
-            flex: 1;
-        }
-
-        .mov-desc-titulo {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text);
-            letter-spacing: -0.2px;
-        }
-        
-        .mov-desc-data {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 2px;
-        }
-        
-        .mov-valor {
-            font-weight: 700;
-            color: var(--success);
-            font-size: 1rem;
-            letter-spacing: -0.2px;
-        }
-        
-        .mov-valor.saida {
-            color: var(--danger);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* FAB */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .fab-admin {
-            position: fixed;
-            bottom: 88px;
-            right: 20px;
-            background: var(--primary);
-            color: #FFFFFF;
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-            z-index: 90;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .fab-admin:active {
-            transform: scale(0.95);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* BOTTOM NAV */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--header-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            display: flex;
-            align-items: center;
-            padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)) 0;
-            border-top: 1px solid var(--border);
-            z-index: 1000;
-            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item:hover {
-            color: var(--primary-light);
-        }
-
-        .nav-item:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-            border-radius: 4px;
-        }
-        
-        .nav-item i {
-            font-size: 22px;
-            margin-bottom: 2px;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* MODALS */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 1000;
-            padding: 0;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: var(--surface);
-            width: 100%;
-            max-width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding: 24px 16px;
-            position: relative;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border);
-            border-bottom: none;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        @media (min-width: 600px) {
-            .modal-overlay {
-                align-items: center;
-                padding: 20px;
-            }
-            
-            .modal-content {
-                width: 100%;
-                max-width: 420px;
-                border-radius: 20px;
-                border-bottom: 1px solid var(--border);
-            }
-        }
-        
-        .modal-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text);
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-muted);
-            background: none;
-            border: none;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        
-        .modal-close:active {
-            opacity: 0.5;
-        }
-        
-        .modal-box {
-            display: none;
-        }
-        
-        .modal-box.active {
-            display: block;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* FORM ELEMENTS */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .fechamento {
-            background: var(--surface2);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-        }
-        
-        .fech-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .fech-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        
-        .custom-select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-        
-        .custom-select:active {
-            opacity: 0.7;
-        }
-
-        .custom-select:hover {
-            border-color: var(--primary-light);
-        }
-
-        .fechamento input,
-        .fechamento textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-            outline: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            margin-bottom: 12px;
-        }
-        
-        .fechamento textarea {
-            resize: none;
-            min-height: 80px;
-        }
-        
-        .fechamento input::placeholder,
-        .fechamento textarea::placeholder {
-            color: var(--text-muted);
-        }
-        
-        .fechamento input:focus,
-        .fechamento textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-dim);
-        }
-
-        .fechamento input:hover,
-        .fechamento textarea:hover {
-            border-color: var(--primary-light);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* MODO RÁPIDO */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .modo-rapido-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            z-index: 1500;
-            display: none;
-            flex-direction: column;
-            padding: 24px 16px;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modo-rapido-overlay.active {
-            display: flex;
-        }
-        
-        .rapido-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            width: 100%;
-        }
-        
-        .rapido-card {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        
-        .rapido-nome {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-        
-        .rapido-apelido {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-        }
-        
-        .rapido-btns {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        .rapido-btn {
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            background: var(--surface);
-            color: var(--text);
-        }
-        
-        .rapido-btn.p {
-            background: var(--primary);
-            color: #FFFFFF;
-            border-color: var(--primary);
-        }
-        
-        .rapido-btn.a {
-            background: var(--danger-dim);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-        
-        .rapido-btn.v {
-            background: var(--warning-dim);
-            color: var(--warning);
-            border-color: var(--warning);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* TOAST */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .toast {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
-            color: #FFFFFF;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            z-index: 2000;
-            display: none;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: opacity 0.15s ease;
-        }
-        
-        .toast.active {
-            display: block;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* EMPTY STATE */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-        
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-        
-        .empty-state p {
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* ADMIN */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        .admin-card-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s ease;
-        }
-
-        .admin-card-item:hover {
-            background: var(--surface2);
-        }
-
-        .admin-card-item:last-child {
-            border-bottom: none;
-        }
-        
-        .admin-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .admin-btn {
-            border: none;
-            padding: 8px;
-            border-radius: 8px;
-            color: #FFFFFF;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
-        
-        .admin-btn:active {
-            opacity: 0.7;
-            transform: scale(0.95);
-        }
-        
-        .option-item {
-            padding: 14px 12px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.3px;
-            transition: all 0.2s ease;
-        }
-        
-        .option-item:last-child {
-            border-bottom: none;
-        }
-        
-        .option-item:active {
-            background: var(--surface2);
-        }
-        
-        /* ─────────────────────────────────────────────────────────────────────── */
-        /* RESPONSIVE */
-        /* ─────────────────────────────────────────────────────────────────────── */
-        @media (max-width: 360px) {
-            .church-name {
-                font-size: 0.9rem;
-            }
-            
-            .stat-num {
-                font-size: 1.3rem;
-            }
-            
-            .saldo-val {
-                font-size: 2rem;
-            }
-        }
-        
-        @media print {
-                    .no-print {
-                        display: none !important;
-                    }
-            
-                    body {
-                        padding: 0;
-                        background: #FFFFFF;
-                        color: #000000;
-                    }
-            
-                    .aluno-card {
-                        border: 1px solid #E5E5EA;
-                        break-inside: avoid;
-                        box-shadow: none;
-                    }
-                }
-
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* REDUCED MOTION — respeita prefêrencia do SO */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                @media (prefers-reduced-motion: reduce) {
-                    *, *::before, *::after {
-                        transition-duration: 0.01ms !important;
-                        animation-duration: 0.01ms !important;
-                    }
-                }
-
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* JORNADA CARDS (dinâmicos) */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                .jornada-card {
-                    background: var(--surface);
-                    border-radius: 12px;
-                    padding: 16px;
-                    margin: 12px;
-                    border: 1px solid var(--border);
-                    box-shadow: var(--shadow);
-                    transition: all 0.2s ease;
-                }
-                .jornada-card:hover {
-                    border-color: var(--primary);
-                    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
-                    transform: translateY(-2px);
-                }
-                .jc-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 12px;
-                }
-                .jc-header h3 {
-                    font-size: 1rem;
-                    font-weight: 700;
-                    color: var(--text);
-                    margin: 0;
-                }
-                .jc-header .badge {
-                    background: var(--primary-dim);
-                    color: var(--primary);
-                    font-size: 0.65rem;
-                    font-weight: 700;
-                    padding: 4px 10px;
-                    border-radius: 8px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                }
-                .jc-stats {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr 1fr;
-                    gap: 8px;
-                    margin-bottom: 12px;
-                }
-                .jc-stats div {
-                    background: var(--surface-solid);
-                    border: 1px solid var(--border);
-                    border-radius: 8px;
-                    padding: 8px;
-                    text-align: center;
-                }
-                .jc-stats span {
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                    color: var(--primary);
-                }
-                .jc-resumo {
-                    font-size: 0.85rem;
-                    color: var(--text-muted);
-                    line-height: 1.5;
-                    margin-bottom: 12px;
-                }
-        
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* MEMÓRIAS LISTA DINÂMICA */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                .memorias-lista {
-                    padding: 0 12px 24px;
-                }
-                .memoria-card.memorizado {
-                    border-color: var(--success);
-                    background: var(--success-dim);
-                }
-                .memoria-card.memorizado .mv-ref {
-                    color: var(--success);
-                }
-                .mv-toggle {
-                    margin-top: 10px;
-                    padding: 6px 14px;
-                    border: 1px solid var(--border);
-                    border-radius: 20px;
-                    font-size: 0.7rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                    background: var(--surface);
-                    color: var(--primary);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                .mv-toggle:hover {
-                    background: var(--primary);
-                    color: #FFFFFF;
-                    border-color: var(--primary);
-                }
-                .memoria-card.memorizado .mv-toggle {
-                    background: var(--success);
-                    color: #FFFFFF;
-                    border-color: var(--success);
-                }
-        
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* EXPORT BUTTON & SEARCH */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                .export-btn {
-                    background: var(--success);
-                    color: #FFFFFF;
-                    border: none;
-                    padding: 10px 16px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .export-btn:hover {
-                    background: #28a745;
-                    transform: translateY(-1px);
-                }
-                .export-btn:active {
-                    transform: scale(0.98);
-                }
-        
-                .search-wrapper {
-                    position: relative;
-                    margin-bottom: 12px;
-                }
-                .search-input {
-                    width: 100%;
-                    padding: 12px 16px 12px 40px;
-                    border: 1px solid var(--border);
-                    border-radius: 10px;
-                    background: var(--surface-solid);
-                    color: var(--text);
-                    font-size: 0.9rem;
-                    transition: all 0.2s ease;
-                }
-                .search-input:focus {
-                    outline: none;
-                    border-color: var(--primary);
-                    box-shadow: 0 0 0 3px var(--primary-dim);
-                }
-                .search-input::placeholder {
-                    color: var(--text-muted);
-                }
-                .search-icon {
-                    position: absolute;
-                    left: 12px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: var(--text-muted);
-                    pointer-events: none;
-                }
-        
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* ACESSIBILIDADE - FOCUS VISIBLE GLOBAL */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                *:focus-visible {
-                    outline: 2px solid var(--primary) !important;
-                    outline-offset: 2px !important;
-                }
-                button:focus-visible,
-                a:focus-visible,
-                input:focus-visible,
-                select:focus-visible,
-                textarea:focus-visible {
-                    outline: 2px solid var(--primary);
-                    outline-offset: 2px;
-                }
-        
-                /* Skip link para navegação por teclado */
-                .skip-link {
-                    position: absolute;
-                    top: -40px;
-                    left: 0;
-                    background: var(--primary);
-                    color: #FFFFFF;
-                    padding: 8px 16px;
-                    z-index: 9999;
-                    font-weight: 600;
-                    border-radius: 0 0 8px 0;
-                    transition: top 0.2s ease;
-                }
-                .skip-link:focus {
-                    top: 0;
-                }
-        
-                /* ─────────────────────────────────────────────────────────────────────── */
-                /* CHART.JS WRAPPER */
-                /* ─────────────────────────────────────────────────────────────────────── */
-                .campo-chart-wrapper {
-                    width: 100%;
-                    max-width: 100%;
-                    margin: 12px 0;
-                }
-                .campo-chart-wrapper canvas {
-                    max-width: 100%;
-                    height: auto !important;
-                }
-            </style>
-        </head>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
 <body>
+    <!-- Skip Link para Leitores de Tela e Acessibilidade -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
-    <div id="main-content">
-        <header>
-            <div class="header-row">
-                <div class="logo-wrap">
-                    <canvas id="miniChart"></canvas>
+
+    <!-- CABEÇALHO SAGRADO (STICKY GLASS) -->
+    <header class="app-header">
+        <div class="header-row">
+            <div class="header-brand">
+                <div class="header-icon-wrap" title="EBD Nova Suíça">
+                    <canvas id="miniChart" width="32" height="32" aria-label="Indicador visual da turma"></canvas>
                 </div>
-                <div class="header-info">
-                    <div class="church-name">EBD Nova Suíça</div>
-                    <div class="date-row">
-                        <span class="date-text" id="data-label">--/--/----</span>
-                        <span class="date-badge" onclick="document.getElementById('input-data').showPicker()">ALTERAR</span>
-                        <input type="date" id="input-data" style="display:none" onchange="mudarData(this.value)">
+                <div class="header-titles">
+                    <h1 class="header-church-name">
+                        EBD Nova Suíça <span class="tag-gold">🏛️</span>
+                    </h1>
+                    <div class="header-date-badge" onclick="Chamada.abrirDatePicker()" title="Alterar data da aula">
+                        📅 <span id="data-label">--/--/----</span> ▾
+                        <input type="date" id="input-data" style="position:fixed; top:-100px; left:-100px; width:1px; height:1px; opacity:0;" onchange="Chamada.mudarData(this.value)">
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
-                    <div class="user-badge" onclick="mudarUsuario()" id="userBadge">👤 ?</div>
+            </div>
+
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="Alternar tema claro/escuro" aria-label="Alternar tema">🌓</button>
+                <div class="user-badge" id="userBadge" onclick="Admin.abrirModalUsuario(true)" title="Identificação do usuário">👤 ?</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main id="main-content" class="app-container views-container">
+
+        <!-- ================================================================== -->
+        <!-- ABA 1: CHAMADA                                                    -->
+        <!-- ================================================================== -->
+        <section id="tab-chamada" class="tab-content active" role="tabpanel" aria-labelledby="btn-chamada">
+            <!-- Barra de Estatísticas do Dia -->
+            <div class="stats-bar">
+                <div class="stat-pill s-p">
+                    <div class="stat-num" id="stat-p">0</div>
+                    <div class="stat-lbl">Presentes</div>
+                </div>
+                <div class="stat-pill s-a">
+                    <div class="stat-num" id="stat-a">0</div>
+                    <div class="stat-lbl">Ausentes</div>
+                </div>
+                <div class="stat-pill s-v">
+                    <div class="stat-num" id="stat-v">0</div>
+                    <div class="stat-lbl">Visitantes</div>
                 </div>
             </div>
-        </header>
 
-        <!-- STATS BAR -->
-        <div class="stats-bar">
-            <div class="stat-pill s-p">
-                <div class="stat-num" id="stat-p">0</div>
-                <div class="stat-lbl">Presentes</div>
-            </div>
-            <div class="stat-pill s-a">
-                <div class="stat-num" id="stat-a">0</div>
-                <div class="stat-lbl">Ausentes</div>
-            </div>
-            <div class="stat-pill s-v">
-                <div class="stat-num" id="stat-v">0</div>
-                <div class="stat-lbl">Visitantes</div>
-            </div>
-        </div>
-
-        <!-- TAB: CHAMADA -->
-        <div id="tab-chamada" class="tab-content active">
-            <div class="nav-tabs">
-                <button class="nav-btn active" onclick="setTab('todos', this)">Todos</button>
-                <button class="nav-btn" onclick="setTab('presentes', this)">Presentes</button>
-                <button class="nav-btn" onclick="setTab('ausentes', this)">Ausentes</button>
+            <!-- Barra de Progresso de Frequência -->
+            <div class="progress-card">
+                <div class="progress-header">
+                    <span>Taxa de Presença</span>
+                    <span class="progress-val" id="prog-txt">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="prog-fill"></div>
+                </div>
             </div>
 
-            <div class="toolbar">
-                                        <button class="tool-btn" onclick="abrirModoRapido()">⚡ Modo Rápido</button>
-                                        <button class="tool-btn success-btn" onclick="confirmarAcao('ENVIAR_RELATORIO')">Finalizar</button>
-                                        <button class="tool-btn export-btn" onclick="exportarCSV()" aria-label="Exportar chamada para CSV">📊 Exportar CSV</button>
-                                        <button class="tool-btn warning-btn" onclick="syncToSheets()" aria-label="Sincronizar com Google Sheets">📋 Sheets</button>
-                                    </div>
+            <!-- Filtros de Alunos -->
+            <div class="filter-tabs" role="tablist" aria-label="Filtrar alunos por status">
+                <button class="filter-btn active" onclick="Chamada.setFilterStatus('todos', this)">Todos</button>
+                <button class="filter-btn" onclick="Chamada.setFilterStatus('presentes', this)">Presentes</button>
+                <button class="filter-btn" onclick="Chamada.setFilterStatus('ausentes', this)">Ausentes</button>
+            </div>
 
-                        <div class="search-wrapper">
-                            <span class="search-icon" aria-hidden="true">🔍</span>
-                            <input type="text" class="search-input" placeholder="Buscar aluno..." oninput="render(this.value)" aria-label="Buscar aluno por nome">
-                        </div>
+            <!-- Toolbar de Ações Rápidas -->
+            <div class="toolbar-grid">
+                <button class="btn-tool btn-primary" onclick="ModoRapido.open()">
+                    ⚡ Modo Rápido
+                </button>
+                <button class="btn-tool btn-success" onclick="Admin.abrirModalFinalizar()">
+                    🚀 Finalizar
+                </button>
+                <button class="btn-tool btn-warning" onclick="Sync.syncToSheets()" title="Sincronizar com planilha">
+                    📋 Sheets
+                </button>
+                <button class="btn-tool" onclick="Sync.exportarCSV()" title="Baixar CSV">
+                    📊 CSV
+                </button>
+                <button class="btn-tool" onclick="Sync.exportarPDF()" title="Baixar PDF">
+                    📄 PDF
+                </button>
+            </div>
 
-            <div class="progress-wrap">
-                            <div class="progress-label">
-                                <span>Progresso</span>
-                                <span id="prog-txt">0%</span>
-                            </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" id="prog-fill" style="width: 0%"></div>
-                            </div>
-                        </div>
+            <!-- Campo de Busca em Tempo Real -->
+            <div class="search-box-wrap">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="text" class="search-input" placeholder="Buscar aluno por nome ou apelido..." oninput="Chamada.setFilterText(this.value)" aria-label="Buscar aluno">
+            </div>
 
-                        <!-- GRÁFICO DE FREQUÊNCIA -->
-                        <div class="campo-chart-wrapper" aria-label="Gráfico de frequência da turma">
-                            <canvas class="campo-chart" id="freqChart" role="img" aria-label="Gráfico de pizza: presentes, ausentes, visitantes"></canvas>
-                        </div>
+            <!-- Gráfico de Frequência Chart.js -->
+            <div style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-md); padding:16px; margin-bottom:16px;">
+                <canvas id="freqChart" role="img" aria-label="Gráfico de frequência da turma"></canvas>
+            </div>
 
-                        <div id="lista-alunos"></div>
-        </div>
+            <!-- Lista Dinâmica de Cards de Alunos -->
+            <div id="lista-alunos" role="feed" aria-label="Lista de chamada dos alunos"></div>
+        </section>
 
-        <!-- TAB: RANKING -->
-        <div id="tab-ranking" class="tab-content">
+        <!-- ================================================================== -->
+        <!-- ABA 2: MEMÓRIAS & JORNADA                                         -->
+        <!-- ================================================================== -->
+        <section id="tab-memorias" class="tab-content" role="tabpanel" aria-labelledby="btn-memorias"></section>
+
+        <!-- ================================================================== -->
+        <!-- ABA 3: RANKING & PÓDIO                                            -->
+        <!-- ================================================================== -->
+        <section id="tab-ranking" class="tab-content" role="tabpanel" aria-labelledby="btn-ranking">
             <div id="ranking-lista"></div>
-        </div>
+        </section>
 
-        <!-- TAB: HISTÓRICO -->
-        <div id="tab-historico" class="tab-content">
+        <!-- ================================================================== -->
+        <!-- ABA 4: HISTÓRICO DE AULAS                                         -->
+        <!-- ================================================================== -->
+        <section id="tab-historico" class="tab-content" role="tabpanel" aria-labelledby="btn-historico">
+            <div style="text-align:center; margin-bottom:16px;">
+                <div style="font-size:1.15rem; font-weight:800; color:var(--gold-light);">📅 Histórico de Chamadas</div>
+                <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;">Aulas anteriores arquivadas localmente e na nuvem</div>
+            </div>
             <div id="historico-lista"></div>
-        </div>
+        </section>
 
-        <!-- TAB: CAIXA -->
-        <div id="tab-caixa" class="tab-content">
-            <div class="card-caixa">
-                <div class="saldo-label">Saldo em Caixa</div>
-                <div class="saldo-val" id="caixa-saldo">R$ 0,00</div>
+        <!-- ================================================================== -->
+        <!-- ABA 5: CAIXA / TESOURARIA                                         -->
+        <!-- ================================================================== -->
+        <section id="tab-caixa" class="tab-content" role="tabpanel" aria-labelledby="btn-caixa">
+            <div class="card-caixa-hero">
+                <div class="caixa-hero-label">Saldo Atual em Caixa</div>
+                <div class="caixa-hero-saldo" id="caixa-saldo">R$ 0,00</div>
             </div>
-            <div class="btn-grid">
-                <button class="btn-fin entrada" onclick="abrirFinanceiro('ENTRADA')">➕ Entrada</button>
-                <button class="btn-fin" onclick="abrirFinanceiro('SAIDA')">➖ Saída</button>
+
+            <div class="caixa-actions-grid">
+                <button class="btn-caixa-action entrada" onclick="Caixa.abrirModal('ENTRADA')">
+                    ➕ Entrada
+                </button>
+                <button class="btn-caixa-action saida" onclick="Caixa.abrirModal('SAIDA')">
+                    ➖ Saída
+                </button>
             </div>
+
             <div id="caixa-historico"></div>
-        </div>
+        </section>
+    </main>
 
-        <!-- TAB: JORNADA -->
-        <div id="tab-jornada" class="tab-content">
-            <div class="jornada-header">
-                <h2>Série 6ª · Ana Silva</h2>
-                <div class="sub">Jan – Dez 2026 · 39 semanas</div>
-            </div>
+    <!-- BOTÃO FLUTUANTE ADMIN (FAB) -->
+    <button class="fab-admin no-print" onclick="Admin.abrirAdmin()" title="Gerenciar Membros da EBD" aria-label="Abrir administração de membros">
+        ⚙️
+    </button>
 
-            <div class="jornada-grid">
-                <div class="jornada-section">
-                    <div class="label">Total de aulas</div>
-                    <div class="val"><span>39</span> aulas</div>
-                </div>
-                <div class="jornada-section">
-                    <div class="label">Presença</div>
-                    <div class="val"><span>92%</span> presente</div>
-                </div>
-                <div class="jornada-section">
-                    <div class="label">Faltas celetinas</div>
-                    <div class="val"><span>3</span> faltas</div>
-                </div>
-                <div class="jornada-section">
-                    <div class="label">Ranking</div>
-                    <div class="val">#<span>7</span> / 24</div>
-                </div>
-            </div>
-
-            <div class="jornada-resumo">
-                <div class="r-lbl">Resumo da Jornada</div>
-                <div class="r-line"><span class="emoji">📖</span> Aumentou a frequência desde o 2º trimestre — 92% de presença é o melhor do ano.</div>
-                <div class="r-line"><span class="emoji">🙏</span> Participa ativamente dos depreciable. Mostra bom juízo nas discussões.</div>
-                <div class="r-line"><span class="emoji">🎒</span> Precisa levar o caderno todo. Amanhã conversamos sobre isso.</div>
-            </div>
-
-            <div class="jornada-hook">
-                <div>O que você aprendeu sobre Deus esse mês?</div>
-                <div class="q">"Eu sou o caminho, a verdade e a vida."</div>
-                <div style="font-size:0.7rem; opacity:0.6; margin-top:6px">— João 14:6 · reflexão semanal</div>
-            </div>
-        </div>
-
-        <!-- TAB: MEMÓRIAS -->
-        <div id="tab-memorias" class="tab-content">
-            <div class="memorias-header">
-                <h2>Memórias</h2>
-                <div class="sub">Deixando a Palavra em sua mente</div>
-            </div>
-
-            <div class="memoria-progress">
-                <span class="mp-lbl">Este mês</span>
-                <span class="mp-num">3 / 12</span>
-                <div class="mp-barbg"><div class="mp-barfill" style="width:25%"></div></div>
-            </div>
-
-            <div class="memoria-card">
-                <div class="mv-ref">Marcos 12:30</div>
-                <div class="mv-verso">E ama o Senhor, o teu Deus, de todo o teu coração, e de toda a tua alma, e de todo o teu entendimento.</div>
-                <div class="mv-hook">Segunda-feira · deposta na memória</div>
-            </div>
-
-            <div class="memoria-card">
-                <div class="mv-ref">Salmos 23:1</div>
-                <div class="mv-verso">O Senhor é o meu pastor, nada me falta.</div>
-                <div class="mv-hook">Terça-feira · deposta na memória</div>
-            </div>
-
-            <div class="memoria-card">
-                <div class="mv-ref">Filipenses 4:13</div>
-                <div class="mv-verso">Tudo posso naquele que me fortalece.</div>
-                <div class="mv-hook">Quarta-feira · ainda em revisão</div>
-            </div>
-
-            <div class="memoria-footer">
-                Domingo: lembre-se de repassar o versículo da semana antes da ceia.
-                <div class="q">"Sede fortes e corajosos. Não temam..."</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FAB ADMIN -->
-        <button class="fab-admin no-print" onclick="abrirAdmin()">⚙️</button>
-
-        <!-- MODULAR JS -->
-        <script src="js/app.store.js"></script>
-        <script src="js/app.router.js"></script>
-        <script src="js/app.chart.js"></script>
-
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav no-print" role="navigation" aria-label="Navegação principal">
-        <a href="javascript:void(0)" class="nav-item active" id="btn-chamada" onclick="switchTab('chamada')" aria-current="page">
-            <i aria-hidden="true">📝</i><span>Chamada</span>
+    <!-- NAVEGAÇÃO INFERIOR FIXA (MOBILE-FIRST) -->
+    <nav class="bottom-nav no-print" role="navigation" aria-label="Navegação Principal">
+        <a href="javascript:void(0)" class="nav-item active" id="btn-chamada" onclick="Router.switch('chamada')" aria-current="page">
+            <i class="nav-icon" aria-hidden="true">📝</i>
+            <span>Chamada</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" id="btn-jornada" onclick="switchTab('jornada')">
-            <i aria-hidden="true">👤</i><span>Jornada</span>
+        <a href="javascript:void(0)" class="nav-item" id="btn-memorias" onclick="Router.switch('memorias')">
+            <i class="nav-icon" aria-hidden="true">📖</i>
+            <span>Memórias</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" id="btn-memorias" onclick="switchTab('memorias')">
-            <i aria-hidden="true">📖</i><span>Memórias</span>
+        <a href="javascript:void(0)" class="nav-item" id="btn-ranking" onclick="Router.switch('ranking')">
+            <i class="nav-icon" aria-hidden="true">🏆</i>
+            <span>Ranking</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" id="btn-ranking" onclick="switchTab('ranking')">
-            <i aria-hidden="true">🏆</i><span>Ranking</span>
+        <a href="javascript:void(0)" class="nav-item" id="btn-historico" onclick="Router.switch('historico')">
+            <i class="nav-icon" aria-hidden="true">📅</i>
+            <span>Histórico</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" id="btn-historico" onclick="switchTab('historico')">
-            <i aria-hidden="true">📅</i><span>Histórico</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" id="btn-caixa" onclick="switchTab('caixa')">
-            <i aria-hidden="true">💰</i><span>Caixa</span>
+        <a href="javascript:void(0)" class="nav-item" id="btn-caixa" onclick="Router.switch('caixa')">
+            <i class="nav-icon" aria-hidden="true">💰</i>
+            <span>Caixa</span>
         </a>
     </nav>
 
-    <!-- MODAL OVERLAY -->
-    <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <!-- ====================================================================== -->
+    <!-- MODAIS DO SISTEMA                                                      -->
+    <!-- ====================================================================== -->
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
-            <button class="modal-close" onclick="fecharModal()">&times;</button>
-            
-            <!-- Modal: Confirmação -->
-            <div id="modalConfirm" class="modal-box">
-                <div id="confirmIcon" style="font-size:3rem; text-align:center; margin-bottom:16px">🚀</div>
-                <div class="modal-title" id="confirmTitle">Confirmar?</div>
-                <p id="confirmDesc" style="text-align:center; color:var(--text-muted); margin-bottom:20px; font-size:0.9rem; line-height:1.5"></p>
-                
-                <div id="envioExtras" style="display:none">
-                    <div class="fechamento">
-                        <div class="fech-grid">
-                            <div onclick="abrirSeletor('profA')">
-                                <label class="fech-label">Prof. Adultos</label>
-                                <div class="custom-select" id="btnProfA"><span>Selecionar</span> ▾</div>
-                            </div>
-                            <div onclick="abrirSeletor('profJ')">
-                                <label class="fech-label">Prof. Jovens</label>
-                                <div class="custom-select" id="btnProfJ"><span>Selecionar</span> ▾</div>
-                            </div>
-                        </div>
-                        <div class="fech-grid">
-                            <div>
-                                <label class="fech-label">Bíblias</label>
-                                <input type="number" id="bib" placeholder="0">
-                            </div>
-                            <div>
-                                <label class="fech-label">Revistas</label>
-                                <input type="number" id="rev" placeholder="0">
-                            </div>
-                        </div>
-                        <label class="fech-label">Visitantes Externos</label>
-                        <input type="number" id="qtdVisitantes" placeholder="Quantidade">
-                        <textarea id="nomesVisitantes" placeholder="Nomes dos visitantes..."></textarea>
-                    </div>
-                </div>
-                
-                <button class="tool-btn success-btn" id="btnConfirmarFinal" style="width:100%; padding:12px; margin-top:16px">CONFIRMAR</button>
+            <div class="modal-header">
+                <div class="modal-title" id="modalGenericTitle">EBD Nova Suíça</div>
+                <button class="modal-close" onclick="Admin.fecharModais()" aria-label="Fechar modal">&times;</button>
             </div>
 
-            <!-- Modal: Picker -->
+            <!-- Modal: Finalizar / Confirmar Chamada -->
+            <div id="modalConfirm" class="modal-box">
+                <div id="confirmIcon" style="font-size:2.8rem; text-align:center; margin-bottom:12px;">🚀</div>
+                <div class="modal-title" id="confirmTitle" style="text-align:center; justify-content:center; margin-bottom:6px;">Finalizar Chamada</div>
+                <p id="confirmDesc" style="text-align:center; color:var(--text-secondary); margin-bottom:18px; font-size:0.85rem; line-height:1.5;"></p>
+
+                <div id="envioExtras">
+                    <div style="background:var(--bg-card-solid); border:1px solid var(--border-glass); border-radius:var(--radius-md); padding:16px; margin-bottom:16px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <div onclick="Admin.abrirSeletor('profA')" style="cursor:pointer;">
+                                <label class="form-label">Prof. Adultos</label>
+                                <div class="form-input" id="btnProfA" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Selecionar</span> ▾
+                                </div>
+                            </div>
+                            <div onclick="Admin.abrirSeletor('profJ')" style="cursor:pointer;">
+                                <label class="form-label">Prof. Jovens</label>
+                                <div class="form-input" id="btnProfJ" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Selecionar</span> ▾
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <div>
+                                <label class="form-label">Bíblias Levadas</label>
+                                <input type="number" id="bib" class="form-input" placeholder="0" min="0">
+                            </div>
+                            <div>
+                                <label class="form-label">Revistas Levadas</label>
+                                <input type="number" id="rev" class="form-input" placeholder="0" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Qtd. Visitantes Externos</label>
+                            <input type="number" id="qtdVisitantes" class="form-input" placeholder="0" min="0">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Nomes dos Visitantes</label>
+                            <textarea id="nomesVisitantes" class="form-textarea" placeholder="Digite os nomes dos visitantes do dia..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-tool btn-primary" id="btnConfirmarFinal" style="width:100%; min-height:48px;">
+                    CONFIRMAR E ENVIAR
+                </button>
+            </div>
+
+            <!-- Modal: Seletor de Opções (Picker) -->
             <div id="modalPicker" class="modal-box">
-                <div class="modal-title" id="pickerTitle">Selecionar</div>
+                <div class="modal-title" id="pickerTitle" style="margin-bottom:16px;">Selecionar Professor</div>
                 <div id="pickerOptions"></div>
             </div>
 
-            <!-- Modal: Financeiro -->
+            <!-- Modal: Lançamento Financeiro (Caixa) -->
             <div id="modalFin" class="modal-box">
-                <div class="modal-title" id="fin-titulo">Financeiro</div>
-                <div class="fechamento">
-                    <label class="fech-label">Descrição</label>
-                    <input type="text" id="fin-desc" placeholder="Ex: Oferta, Compra...">
-                    <label class="fech-label">Valor (R$)</label>
-                    <input type="number" id="fin-valor" step="0.01" placeholder="0,00">
-                    <button class="tool-btn success-btn" id="btnConfirmarFin" style="width:100%; padding:12px; margin-top:16px">SALVAR</button>
+                <div class="modal-title" id="fin-titulo" style="margin-bottom:16px;">Movimentação Financeira</div>
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select id="fin-categoria" class="form-select">
+                        <option value="Oferta">Oferta Regular</option>
+                        <option value="Dízimo/Doação">Doação Especial</option>
+                        <option value="Material Didático">Material / Revistas</option>
+                        <option value="Cantina/Lanche">Cantina / Comunhão</option>
+                        <option value="Evento">Evento / Confraternização</option>
+                        <option value="Outros">Outros</option>
+                    </select>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <input type="text" id="fin-desc" class="form-input" placeholder="Ex: Oferta da aula, Compra de café...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Valor (R$)</label>
+                    <input type="number" id="fin-valor" class="form-input" step="0.01" min="0" placeholder="0,00">
+                </div>
+                <button class="btn-tool btn-success" id="btnConfirmarFin" style="width:100%; min-height:48px;" onclick="Caixa.salvarTransacao()">
+                    SALVAR LANÇAMENTO
+                </button>
             </div>
 
-            <!-- Modal: Usuário -->
+            <!-- Modal: Identificação de Usuário -->
             <div id="modalUsuario" class="modal-box">
-                <div class="modal-title">Identificação</div>
-                <p style="text-align:center; font-size:0.85rem; color:var(--text-muted); margin-bottom:16px">Quem está realizando a chamada?</p>
-                <input type="text" id="inputUsuarioNome" class="search-box" style="margin-bottom:16px" placeholder="Seu nome...">
-                <button class="tool-btn success-btn" style="width:100%; padding:12px" onclick="salvarNovoUsuario()">ENTRAR</button>
-                <button class="tool-btn" id="btnFecharUserModal" style="width:100%; margin-top:10px; display:none" onclick="fecharModal()">Cancelar</button>
+                <div class="modal-title" style="margin-bottom:8px;">Identificação do Usuário</div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">
+                    Informe seu nome ou cargo para registrar quem realizou a chamada oficial.
+                </p>
+                <div class="form-group">
+                    <input type="text" id="inputUsuarioNome" class="form-input" placeholder="Seu nome (ex: Pastor José, Victor)...">
+                </div>
+                <button class="btn-tool btn-primary" style="width:100%; min-height:48px;" onclick="Admin.salvarUsuario()">
+                    ENTRAR / SALVAR
+                </button>
+                <button class="btn-tool" id="btnFecharUserModal" style="width:100%; margin-top:8px; display:none;" onclick="Admin.fecharModais()">
+                    Cancelar
+                </button>
             </div>
 
-            <!-- Modal: Admin -->
+            <!-- Modal: Administração de Membros -->
             <div id="modalAdmin" class="modal-box">
-                <div class="modal-title">Gerenciar Membros</div>
-                <div class="fechamento">
-                    <input type="hidden" id="editIndex" value="-1">
-                    <input type="text" id="membroNome" placeholder="NOME COMPLETO" style="margin-bottom:10px">
-                    <input type="text" id="membroApelido" placeholder="APELIDO">
-                    <div style="display:flex; gap:10px; margin-top:12px">
-                        <button class="tool-btn success-btn" id="btnSalvarMembro" onclick="salvarMembro()" style="flex:2; padding:10px">SALVAR</button>
-                        <button class="tool-btn" id="btnCancelaEdit" onclick="limparFormAdmin()" style="display:none; flex:1; padding:10px">✕</button>
+                <div class="modal-title" style="margin-bottom:14px;">Gerenciar Alunos da EBD</div>
+                
+                <div style="background:var(--bg-card-solid); border:1px solid var(--border-glass); border-radius:var(--radius-md); padding:14px; margin-bottom:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" id="membroNome" class="form-input" placeholder="NOME DO ALUNO">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apelido / Cargo</label>
+                        <input type="text" id="membroApelido" class="form-input" placeholder="Apelido (ex: Irmã Cida, Membro)">
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-tool btn-primary" id="btnSalvarMembro" style="flex:2;" onclick="Admin.salvarMembro()">SALVAR</button>
+                        <button class="btn-tool" id="btnCancelaEdit" style="flex:1; display:none;" onclick="Admin.limparForm()">Cancelar</button>
                     </div>
                 </div>
-                <div id="listaAdminItems" style="background:var(--surface); border-radius:12px; border:1px solid var(--border); margin-bottom:16px"></div>
-                <button class="tool-btn" style="width:100%; color:var(--danger); padding:10px" onclick="confirmarAcao('LIMPAR_CHAMADA')">LIMPAR CHAMADA</button>
+
+                <div class="mov-list-title">Membros Cadastrados</div>
+                <div id="listaAdminItems" style="background:var(--bg-card-solid); border:1px solid var(--border-glass); border-radius:var(--radius-md); max-height:240px; overflow-y:auto; margin-bottom:16px;"></div>
+
+                <button class="btn-tool" style="width:100%; color:var(--status-ausente); border-color:rgba(239, 68, 68, 0.4);" onclick="Admin.limparChamadaHoje()">
+                    🧹 Limpar Chamada de Hoje
+                </button>
             </div>
 
-            <!-- Modal: Detalhes Histórico -->
+            <!-- Modal: Detalhes de Registro Histórico -->
             <div id="modalHistDetalhes" class="modal-box">
-                <div class="modal-title" id="histDetalhesTitulo">Detalhes</div>
+                <div class="modal-title" id="histDetalhesTitulo">Detalhes da Chamada</div>
                 <div id="histDetalhesCorpo"></div>
             </div>
         </div>
     </div>
 
-    <!-- MODO RÁPIDO OVERLAY -->
-    <div class="modo-rapido-overlay" id="modoRapidoOverlay">
-        <div class="rapido-header">
-            <div class="date-badge" id="rapidoProgress">1 de 10</div>
-            <button class="icon-btn" onclick="fecharModoRapido()">✕</button>
-        </div>
-        <div class="rapido-card">
-            <div class="rapido-nome" id="rapidoNome">Nome</div>
-            <div class="rapido-apelido" id="rapidoApelido">Apelido</div>
-            <div class="rapido-btns" id="rapidoBtns"></div>
-            <div style="margin-top:40px; display:flex; gap:20px">
-                <button class="icon-btn" onclick="navegarRapido(-1)">←</button>
-                <button class="icon-btn" onclick="navegarRapido(1)">→</button>
+    <!-- MODAL OVERLAY: MODO RÁPIDO (CARROSSEL) -->
+    <div class="modal-overlay" id="modalModoRapido">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <div class="rapido-progress-badge" id="rapidoProgressBadge">1 de 32</div>
+                <button class="modal-close" onclick="ModoRapido.close()" aria-label="Fechar Modo Rápido">&times;</button>
             </div>
+            <div class="modo-rapido-container" id="rapidoCardContainer"></div>
         </div>
     </div>
 
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
     <div class="toast" id="toast"></div>
 
-    <script>
-    // ── CONFIG & DATA ────────────────────────────────────────────────────────
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywWTGLvib-VE8S4u6Dr8SeovdDf6enjJDcYyNPgTJI5StNUF3qpCBQezAQeoK9QWqN/exec";
-    // SCRIPT_URL (Google Apps Script macro) — sem expor em summaries ou logs públicos
-    
-    let db = JSON.parse(localStorage.getItem('ebd_db_v36')) || [
-        { nome: "ADONIAS QUEIROZ DO MONTE", apelido: "Adonias", oculto: false },
-        { nome: "ALAN QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "ANTONIA APARECIDA FUZATO", apelido: "Irmã Tânia", oculto: false },
-        { nome: "APARECIDA GRANADA", apelido: "Irmã Cida (Edirlei)", oculto: false },
-        { nome: "CREUZA QUINTELA DA SILVA", apelido: "Membro", oculto: false },
-        { nome: "CRISTINA", apelido: "Membro", oculto: false },
-        { nome: "EDERLEI APARECIDO", apelido: "Membro", oculto: false },
-        { nome: "ELISANGELA SILVEIRA", apelido: "Membro", oculto: false },
-        { nome: "ELZA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ENZO GABRIEL", apelido: "Membro", oculto: false },
-        { nome: "FERNANDA DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "GINAUSIO CORREIA MENEZES", apelido: "Membro", oculto: false },
-        { nome: "ISABELLE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "ISAQUE GRANADA", apelido: "Membro", oculto: false },
-        { nome: "JANAINA", apelido: "Membro", oculto: false },
-        { nome: "JEFERSON BATISTA", apelido: "Membro", oculto: false },
-        { nome: "JENIFER MONIQUE", apelido: "Membro", oculto: false },
-        { nome: "JOSE GERISMAR ONIAS", apelido: "Pastor", oculto: false },
-        { nome: "JOSELMA QUEIROZ DO MONTE", apelido: "Membro", oculto: false },
-        { nome: "JUNIOR DE OLIVEIRA", apelido: "Membro", oculto: false },
-        { nome: "LUCAS HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "LUIZ CARLOS SABINO", apelido: "Irmão Luiz", oculto: false },
-        { nome: "MANOELINA FUZATO", apelido: "Irmã Nela", oculto: false },
-        { nome: "MARIA DA CRUZ CONCEIÇÃO", apelido: "Membro", oculto: false },
-        { nome: "MARIANA", apelido: "Membro", oculto: false },
-        { nome: "MAYCON APARECIDO CARVALHO", apelido: "Membro", oculto: false },
-        { nome: "NATALINO GERMANO", apelido: "Membro", oculto: false },
-        { nome: "OZIEL DA FONSECA", apelido: "Membro", oculto: false },
-        { nome: "PEDRO HENRIQUE", apelido: "Membro", oculto: false },
-        { nome: "VICTOR HUGO", apelido: "Membro", oculto: false },
-        { nome: "GERALDO", apelido: "Membro", oculto: false },
-        { nome: "VIRGÍNIA", apelido: "Membro", oculto: false }
-    ];
-
-    let presencas = JSON.parse(localStorage.getItem('ebd_hoje_v36') || '{}');
-    let dataAula = new Date().toLocaleDateString('pt-BR');
-    let profA = "Selecionar", profJ = "Selecionar";
-    let acaoPendente = null, indexPendente = null;
-    let usuarioAtual = localStorage.getItem('ebd_user_name') || null;
-    let currentTab = 'chamada';
-    let filterStatus = 'todos';
-    let rapidoIdx = 0, rapidoLista = [];
-
-    const haptic = (s) => { if (window.navigator.vibrate) { const m = { light: 10, medium: 30, success: [30, 50, 30] }; window.navigator.vibrate(m[s] || 0); } };
-    const capitalize = (s) => s.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
-
-    // ── IDENTIFICAÇÃO ────────────────────────────────────────────────────────
-    function inicializarUsuario() {
-        if (!usuarioAtual) {
-            abrirModalUsuario(false);
-        } else {
-            document.getElementById('userBadge').textContent = `👤 ${usuarioAtual}`;
-        }
-    }
-
-    function abrirModalUsuario(podeFechar = true) {
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('modalUsuario').classList.add('active');
-        document.getElementById('btnFecharUserModal').style.display = podeFechar ? 'block' : 'none';
-        document.getElementById('inputUsuarioNome').value = usuarioAtual || '';
-        document.body.classList.add('modal-open');
-    }
-
-    function salvarNovoUsuario() {
-        const nome = document.getElementById('inputUsuarioNome').value.trim();
-        if (!nome) return alert("Por favor, digite seu nome.");
-        usuarioAtual = capitalize(nome);
-        localStorage.setItem('ebd_user_name', usuarioAtual);
-        document.getElementById('userBadge').textContent = `👤 ${usuarioAtual}`;
-        fecharModal();
-        showToast(`Bem-vindo(a), ${usuarioAtual}!`);
-    }
-
-    function mudarUsuario() { abrirModalUsuario(true); }
-
-    // ── RENDER ────────────────────────────────────────────────────────────────
-    function render(filter = "") {
-        const container = document.getElementById('lista-alunos');
-        const f = filter.toLowerCase();
-        let list = db.filter(m => !m.oculto && (m.nome.toLowerCase().includes(f) || m.apelido.toLowerCase().includes(f)));
-        
-        if (filterStatus === 'presentes') list = list.filter(m => presencas[m.nome]?.status === 'P');
-        if (filterStatus === 'ausentes') list = list.filter(m => !presencas[m.nome] || presencas[m.nome].status === 'A');
-        
-        list.sort((a, b) => a.nome.localeCompare(b.nome));
-        
-        container.innerHTML = list.map(m => {
-            const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
-            const statusClass = p.status === 'P' ? 'presente' : (p.status === 'V' ? 'visitante-cor' : 'ausente');
-            return `
-              <div class="aluno-card ${statusClass}">
-                <div class="card-top">
-                  <div style="flex:1">
-                    <div class="card-name">${capitalize(m.nome)}</div>
-                    <div class="card-sub">${m.apelido}</div>
-                  </div>
-                  <button class="oferta-btn ${p.ofertou ? 'ativo' : ''}" onclick="toggleOferta('${m.nome}')">💰</button>
-                </div>
-                <div class="btn-group">
-                  <button class="btn btn-p ${p.status === 'P' ? 'active' : ''}" onclick="setStatus('${m.nome}','P')">P</button>
-                  <button class="btn btn-a ${p.status === 'A' ? 'active' : ''}" onclick="setStatus('${m.nome}','A')">F</button>
-                  <button class="btn btn-v ${p.status === 'V' ? 'active' : ''}" onclick="setStatus('${m.nome}','V')">V</button>
-                  <div class="counter-box">
-                    <button class="counter-btn" onclick="addPerg('${m.nome}',-1)">-</button>
-                    <span class="counter-val">${p.perguntas} pt</span>
-                    <button class="counter-btn" onclick="addPerg('${m.nome}',1)">+</button>
-                  </div>
-                </div>
-              </div>`;
-        }).join('');
-        updateStats();
-    }
-
-    function setTab(tab, el) {
-        filterStatus = tab;
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        render();
-    }
-
-    function setStatus(nome, s) { haptic('light'); if (!presencas[nome]) presencas[nome] = { perguntas: 0, ofertou: false }; presencas[nome].status = s; save(); render(); }
-    function toggleOferta(nome) { haptic('light'); if (!presencas[nome]) presencas[nome] = { status: 'A', perguntas: 0, ofertou: false }; presencas[nome].ofertou = !presencas[nome].ofertou; save(); render(); }
-    function addPerg(nome, v) { haptic('light'); if (!presencas[nome]) presencas[nome] = { status: 'A', perguntas: 0, ofertou: false }; presencas[nome].perguntas = Math.max(0, presencas[nome].perguntas + v); save(); render(); }
-
-    function updateStats() {
-            const total = db.filter(m => !m.oculto).length;
-            const p = Object.values(presencas).filter(x => x.status === 'P').length;
-            const a = total - p;
-            const v = Object.values(presencas).filter(x => x.status === 'V').length;
-            document.getElementById('stat-p').textContent = p;
-            document.getElementById('stat-a').textContent = a;
-            document.getElementById('stat-v').textContent = v;
-            const perc = total > 0 ? Math.round((p / total) * 100) : 0;
-            document.getElementById('prog-txt').textContent = perc + '%';
-            document.getElementById('prog-fill').style.width = perc + '%';
-            if (window.miniChart) { window.miniChart.data.datasets[0].data = [p, a, v]; window.miniChart.update(); }
-        
-            // Atualiza gráfico de frequência (Chart.js)
-            renderFreqChart(p, a, v);
-        }
-
-    // ── GRÁFICO DE FREQUÊNCIA (Chart.js) ───────────────────────────────────────────
-        function renderFreqChart(p, a, v) {
-            const ctx = document.getElementById('freqChart');
-            if (!ctx) return;
-        
-            if (window.freqChart) {
-                window.freqChart.data.datasets[0].data = [p, a, v];
-                window.freqChart.update();
-                return;
-            }
-        
-            window.freqChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Presentes', 'Ausentes', 'Visitantes'],
-                    datasets: [{
-                        data: [p, a, v],
-                        backgroundColor: ['#34C759', '#FF3B30', '#FF9500'],
-                        borderWidth: 0,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    cutout: '65%',
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                padding: 12,
-                                font: { size: 11, family: 'system-ui' },
-                                color: '#666',
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const pct = total > 0 ? Math.round((context.raw / total) * 100) : 0;
-                                    return context.label + ': ' + context.raw + ' (' + pct + '%)';
-                                }
-                            }
-                        }
-                    },
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1
-                }
-            });
-        }
-
-        // ── EXPORTAÇÃO CSV/PDF ───────────────────────────────────────────────────────────
-                function exportarCSV() {
-                    const total = db.filter(m => !m.oculto).length;
-                    if (total === 0) { showToast('Nenhum aluno para exportar'); return; }
-            
-                    const linhas = ['Nome,Apelido,Status,Perguntas,Ofertou,Data'];
-                    db.filter(m => !m.oculto).forEach(m => {
-                        const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
-                        const statusLabel = p.status === 'P' ? 'Presente' : (p.status === 'V' ? 'Visitante' : 'Ausente');
-                        linhas.push(`"${m.nome}","${m.apelido}","${statusLabel}",${p.perguntas},${p.ofertou ? 'Sim' : 'Não'}","${dataAula}"`);
-                    });
-            
-                    const csv = linhas.join('\n');
-                    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `chamada_${dataAula.replace(/\//g, '-')}.csv`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                    showToast('✓ CSV exportado!');
-                }
-        
-                function exportarPDF() {
-                    const total = db.filter(m => !m.oculto).length;
-                    if (total === 0) { showToast('Nenhum aluno para exportar'); return; }
-            
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-            
-                    // Título
-                    doc.setFontSize(14);
-                    doc.text('Relatório de Chamada - EBD Nova Suíça', 14, 20);
-            
-                    // Cabeçalho da tabela
-                    const headers = ['Nome', 'Apelido', 'Status', 'Perguntas', 'Ofertou', 'Data'];
-                    const rows = [];
-            
-                    db.filter(m => !m.oculto).forEach(m => {
-                        const p = presencas[m.nome] || { status: 'A', perguntas: 0, ofertou: false };
-                        const statusLabel = p.status === 'P' ? 'Presente' : (p.status === 'V' ? 'Visitante' : 'Ausente');
-                        rows.push([m.nome, m.apelido, statusLabel, String(p.perguntas), p.ofertou ? 'Sim' : 'Não', dataAula]);
-                    });
-            
-                    // Configurar tabela
-                    doc.autoTable({
-                        head: [headers],
-                        body: rows,
-                        startY: 30,
-                        theme: 'grid',
-                        margin: { left: 10, right: 10 }
-                    });
-            
-                    // Download
-                    doc.save(`chamada_${dataAula.replace(/\//g, '-')}.pdf`);
-                    showToast('✓ PDF exportado!');
-                }
-        
-                // ── INTEGRAÇÃO GOOGLE SHEETS ─────────────────────────────────────────────────
-                function syncToSheets() {
-                    const total = db.filter(m => !m.oculto).length;
-                    if (total === 0) { showToast('Nenhum aluno para sincronizar'); return; }
-            
-                    const url = SCRIPT_URL + '?action=syncChamada';
-            
-                    const alunos = db.filter(m => !m.oculto).map(m => ({
-                        nome: m.nome,
-                        apelido: m.apelido,
-                        status: presencas[m.nome]?.status || 'A',
-                        perguntas: presencas[m.nome]?.perguntas || 0,
-                        ofertou: presencas[m.nome]?.ofertou || false
-                    }));
-            
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ data: alunos, dataAula: dataAula })
-                    })
-                    .then(response => response.text())
-                    .then(result => {
-                        showToast('✓ Dados sincronizados com Google Sheets!');
-                    })
-                    .catch(error => {
-                        console.error('Erro ao sincronizar:', error);
-                        showToast('✗ Erro na sincronização');
-                    });
-                }
-
-        // ── APP BRIDGE (liga funções inline ao router modular) ─────────────────────────
-        var AppBridge = {
-        fetchRanking: window.fetchRanking,
-        fetchHistorico: window.renderHistorico,
-        fetchCaixa: window.fetchCaixa
-    };
-
-    // ── JORNADA MODULE ────────────────────────────────────────────────────────────
-    var Jornada = {
-        init: function() {
-            this.renderJornada();
-        },
-        renderJornada: function() {
-            var data = Store.get('jornada', { alunos: [] });
-            var container = document.getElementById('tab-jornada');
-            if (!container) return;
-        
-            // Se não há dados, mostra estado vazio com botão para criar
-            if (!data.alunos.length) {
-                container.innerHTML = '\
-                    <div class="empty-state">\
-                        <div class="icon">👤</div>\
-                        <p>Nenhuma jornada registrada.</p>\
-                        <button class="tool-btn success-btn" onclick="Jornada.criarNova()">+ Nova Jornada</button>\
-                    </div>';
-                return;
-            }
-        
-            // Render dos cards de jornada existentes
-            container.innerHTML = data.alunos.map(function(a) {
-                return '\
-                    <div class="jornada-card">\
-                        <div class="jc-header">\
-                            <h3>' + (a.nome || 'Sem nome') + '</h3>\
-                            <span class="badge">' + (a.serie || '—') + '</span>\
-                        </div>\
-                        <div class="jc-stats">\
-                            <div><span>' + (a.totalAulas || 0) + '</span> aulas</div>\
-                            <div><span>' + (a.presencaPct || 0) + '%</span> presença</div>\
-                            <div><span>' + (a.faltas || 0) + '</span> faltas</div>\
-                        </div>\
-                        <div class="jc-resumo">' + (a.resumo || 'Sem resumo') + '</div>\
-                        <button class="tool-btn secondary-btn small" onclick="Jornada.editar(' + a.id + ')">Editar</button>\
-                    </div>';
-            }).join('');
-        },
-        criarNova: function() {
-            var nome = prompt('Nome do aluno:');
-            if (!nome) return;
-            var serie = prompt('Série/Turma:') || '—';
-            var data = Store.get('jornada', { alunos: [] });
-            var novo = { id: Date.now(), nome: nome.toUpperCase(), serie: serie, totalAulas: 0, presencaPct: 0, faltas: 0, resumo: '' };
-            data.alunos.push(novo);
-            Store.set('jornada', data);
-            this.renderJornada();
-        },
-        editar: function(id) {
-            var data = Store.get('jornada', { alunos: [] });
-            var aluno = data.alunos.find(function(a) { return a.id === id; });
-            if (!aluno) return;
-        
-            var totalAulas = prompt('Total de aulas:', aluno.totalAulas);
-            if (totalAulas === null) return;
-            var presenca = prompt('Presença (%):', aluno.presencaPct);
-            if (presenca === null) return;
-            var faltas = prompt('Faltas:', aluno.faltas);
-            if (faltas === null) return;
-            var resumo = prompt('Resumo:', aluno.resumo);
-            if (resumo === null) return;
-        
-            aluno.totalAulas = parseInt(totalAulas) || 0;
-            aluno.presencaPct = parseInt(presenca) || 0;
-            aluno.faltas = parseInt(faltas) || 0;
-            aluno.resumo = resumo;
-            Store.set('jornada', data);
-            this.renderJornada();
-        }
-    };
-
-    // ── MEMÓRIAS MODULE ────────────────────────────────────────────────────────────
-    var Memorias = {
-        versiculosPadrao: [
-            { ref: 'João 3:16', texto: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito...', dia: 'Segunda' },
-            { ref: 'Salmos 23:1', texto: 'O Senhor é o meu pastor, nada me falta.', dia: 'Terça' },
-            { ref: 'Filipenses 4:13', texto: 'Tudo posso naquele que me fortalece.', dia: 'Quarta' },
-            { ref: 'Romanos 8:28', texto: 'Todas as coisas contribuem para o bem daqueles que amam a Deus...', dia: 'Quinta' },
-            { ref: 'Isaías 41:10', texto: 'Não temas, porque eu sou contigo...', dia: 'Sexta' },
-            { ref: 'Provérbios 3:5-6', texto: 'Confia no Senhor de todo o teu coração...', dia: 'Sábado' },
-            { ref: 'Mateus 6:33', texto: 'Buscai primeiro o reino de Deus...', dia: 'Domingo' }
-        ],
-        init: function() {
-            this.renderMemorias();
-        },
-        renderMemorias: function() {
-            var data = Store.get('memorias', { versiculos: [], memorizados: {} });
-            var container = document.getElementById('tab-memorias');
-            if (!container) return;
-        
-            // Mescla versículos padrão com salvos
-            var todos = this.versiculosPadrao.map(function(v, i) {
-                var salvo = data.versiculos.find(function(s) { return s.ref === v.ref; });
-                return {
-                    ref: v.ref,
-                    texto: salvo ? salvo.texto : v.texto,
-                    dia: v.dia,
-                    memorizado: !!data.memorizados[v.ref],
-                    streak: data.memorizados[v.ref] ? data.memorizados[v.ref].streak || 0 : 0
-                };
-            });
-        
-            var memorizadosCount = todos.filter(function(v) { return v.memorizado; }).length;
-        
-            container.innerHTML = '\
-                <div class="memorias-header">\
-                    <h2>Memórias</h2>\
-                    <div class="sub">Deixando a Palavra em sua mente</div>\
-                </div>\
-                <div class="memoria-progress">\
-                    <span class="mp-lbl">Este mês</span>\
-                    <span class="mp-num">' + memorizadosCount + ' / ' + todos.length + '</span>\
-                    <div class="mp-barbg"><div class="mp-barfill" style="width:' + Math.round((memorizadosCount/todos.length)*100) + '%"></div></div>\
-                </div>\
-                <div class="memorias-lista">' + todos.map(function(v) {
-                    return '\
-                        <div class="memoria-card' + (v.memorizado ? ' memorizado' : '') + '" data-ref="' + v.ref + '">\
-                            <div class="mv-ref">' + v.ref + '</div>\
-                            <div class="mv-verso">' + v.texto + '</div>\
-                            <div class="mv-hook">' + v.dia + ' · ' + (v.memorizado ? '✅ Memorizado (' + v.streak + ' dias)' : 'Em revisão') + '</div>\
-                            <button class="mv-toggle" onclick="Memorias.toggleMemorizado(\'' + v.ref + '\')">' + (v.memorizado ? 'Desmarcar' : 'Marcar como memorizado') + '</button>\
-                        </div>';
-                }).join('') + '</div>\
-                <div class="memoria-footer">\
-                    Domingo: lembre-se de repassar o versículo da semana antes da ceia.\
-                    <div class="q">"Sede fortes e corajosos. Não temam..."</div>\
-                </div>';
-        },
-        toggleMemorizado: function(ref) {
-            var data = Store.get('memorias', { versiculos: [], memorizados: {} });
-            var hoje = new Date().toISOString().split('T')[0];
-        
-            if (!data.memorizados[ref]) {
-                data.memorizados[ref] = { data: hoje, streak: 1 };
-                showToast('✅ Versículo memorizado!');
-            } else {
-                // Verifica se é dia consecutivo
-                var ultima = data.memorizados[ref].data;
-                var diff = (new Date(hoje) - new Date(ultima)) / (1000*60*60*24);
-                if (diff === 1) {
-                    data.memorizados[ref].streak += 1;
-                } else if (diff > 1) {
-                    data.memorizados[ref].streak = 1;
-                }
-                data.memorizados[ref].data = hoje;
-                showToast('🔥 Streak: ' + data.memorizados[ref].streak + ' dias!');
-            }
-            Store.set('memorias', data);
-            this.renderMemorias();
-        }
-    };
-
-    // ── NOTIFICAÇÕES MODULE ────────────────────────────────────────────────────────
-    var Notificacoes = {
-        init: function() {
-            if ('Notification' in window) {
-                if (Notification.permission === 'default') {
-                    Notification.requestPermission().then(function(perm) {
-                        if (perm === 'granted') showToast('🔔 Notificações ativadas!');
-                    });
-                }
-            }
-            this.agendarLembretes();
-        },
-        agendarLembretes: function() {
-            // Lembrete diário às 19h para revisar versículo
-            var agora = new Date();
-            var alvo = new Date();
-            alvo.setHours(19, 0, 0, 0);
-            if (alvo <= agora) alvo.setDate(alvo.getDate() + 1);
-        
-            var ms = alvo - agora;
-            setTimeout(function() {
-                Notificacoes.mostrar('Hora do versículo! 📖', 'Repasse o versículo da semana antes da ceia.');
-                Notificacoes.agendarLembretes(); // Reagenda para amanhã
-            }, ms);
-        },
-        mostrar: function(titulo, corpo) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(titulo, { body: corpo, icon: '/icon-192.png' });
-            }
-        }
-    };
-        haptic('medium');
-        rapidoLista = db.filter(m => !m.oculto).sort((a, b) => a.nome.localeCompare(b.nome));
-        rapidoIdx = 0;
-        document.getElementById('modoRapidoOverlay').classList.add('active');
-        renderRapido();
-    }
-    function fecharModoRapido() { document.getElementById('modoRapidoOverlay').classList.remove('active'); }
-
-    function renderRapido() {
-        const btns = document.getElementById('rapidoBtns');
-        if (rapidoIdx >= rapidoLista.length) {
-            document.getElementById('rapidoNome').textContent = '🎉 Concluído!';
-            document.getElementById('rapidoApelido').textContent = 'Todos foram marcados.';
-            document.getElementById('rapidoProgress').textContent = `${rapidoLista.length} de ${rapidoLista.length}`;
-            btns.innerHTML = `<button class="rapido-btn p" onclick="fecharModoRapido()">Fechar</button>`;
-            return;
-        }
-        const m = rapidoLista[rapidoIdx];
-        document.getElementById('rapidoNome').textContent = capitalize(m.nome);
-        document.getElementById('rapidoApelido').textContent = m.apelido;
-        document.getElementById('rapidoProgress').textContent = `${rapidoIdx + 1} de ${rapidoLista.length}`;
-        btns.innerHTML = `
-            <button class="rapido-btn p" onclick="votarRapido('P')">✓ PRESENTE</button>
-            <button class="rapido-btn a" onclick="votarRapido('A')">✗ AUSENTE</button>
-            <button class="rapido-btn v" onclick="votarRapido('V')">👋 VISITANTE</button>`;
-    }
-    function votarRapido(s) { haptic('light'); setStatus(rapidoLista[rapidoIdx].nome, s); rapidoIdx++; renderRapido(); }
-    function navegarRapido(dir) { rapidoIdx = Math.max(0, Math.min(rapidoLista.length - 1, rapidoIdx + dir)); renderRapido(); }
-
-    // ── DATA ──────────────────────────────────────────────────────────────────
-    function mudarData(v) { const p = v.split('-'); dataAula = `${p[2]}/${p[1]}/${p[0]}`; document.getElementById('data-label').textContent = dataAula; }
-
-    // ── API & SYNC ────────────────────────────────────────────────────────────
-    async function apiFetch(params) {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("X6X6X6X6X6X6X")) throw new Error("URL não configurada.");
-        const url = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + params;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Erro servidor.");
-        return await response.json();
-    }
-
-    // ── RANKING (nuvem com fallback local) ─────────────────────────────────────
-    function obterHistoricoLocal() { return JSON.parse(localStorage.getItem('ebd_historico_local') || '[]'); }
-    function salvarHistoricoLocal(lista) { localStorage.setItem('ebd_historico_local', JSON.stringify(lista)); }
-    function calcularRankingLocal() {
-        const hist = obterHistoricoLocal();
-        const pts = {};
-        hist.forEach(h => {
-            (h.frequencia || []).forEach(f => {
-                if (f.status === 'P') pts[f.nome] = (pts[f.nome] || 0) + 1;
-            });
-        });
-        return Object.entries(pts).map(([nome, pontos]) => ({ nome, pontos }))
-                   .sort((a, b) => b.pontos - a.pontos);
-    }
-
-    async function fetchRanking() {
-        const c = document.getElementById('ranking-lista');
-        c.innerHTML = '<div class="rank-loading">⏳ Atualizando...</div>';
-        try {
-            const d = await apiFetch("action=getRanking");
-            if (!d || !d.length) throw new Error("vazio");
-            c.innerHTML = d.map((m, i) => `
-                <div class="rank-card">
-                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
-                    <div class="rank-info">
-                        <div class="rank-name">${capitalize(m.nome)}</div>
-                        <div class="rank-sub">Pontuação acumulada</div>
-                    </div>
-                    <div class="rank-pts">${m.pontos || 0} pts</div>
-                </div>`).join('');
-        } catch (e) {
-            // fallback local
-            const d = calcularRankingLocal();
-            if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Sem dados. Finalize chamadas para gerar o ranking.</p></div>'; return; }
-            c.innerHTML = d.map((m, i) => `
-                <div class="rank-card">
-                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}º</div>
-                    <div class="rank-info">
-                        <div class="rank-name">${capitalize(m.nome)}</div>
-                        <div class="rank-sub">Presenças acumuladas (local)</div>
-                    </div>
-                    <div class="rank-pts">${m.pontos || 0} pres.</div>
-                </div>`).join('');
-        }
-    }
-
-    async function renderHistorico() {
-        const c = document.getElementById('historico-lista');
-        c.innerHTML = '<div class="rank-loading">⏳ Carregando...</div>';
-        try {
-            const hist = await apiFetch("action=getHistoricoNuvem");
-            if (!hist || !hist.length) throw new Error("vazio");
-            c.innerHTML = hist.map((h, i) => {
-                if (!h || !h.data || h.data === "undefined") return '';
-                const p = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
-                return `
-                  <div class="hist-card" onclick="verDetalhesHistorico(${i})">
-                    <div class="hist-date">📅 ${h.data}</div>
-                    <div class="hist-stats">
-                      <span class="hist-badge p">✓ ${p} presentes</span>
-                      ${h.vExtQtd > 0 ? `<span class="hist-badge v">👋 ${h.vExtQtd} visitantes</span>` : ''}
-                    </div>
-                    <div class="hist-prof">Prof: ${h.pA || '-'} / ${h.pJ || '-'}</div>
-                    <div class="hist-responsavel">👤 ${h.responsavel || 'Sistema'}</div>
-                  </div>`;
-            }).filter(x => x !== '').join('');
-        } catch (e) {
-            // fallback local
-            const hist = obterHistoricoLocal();
-            if (!hist.length) { c.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Sem histórico. Finalize uma chamada para registrar.</p></div>'; return; }
-            c.innerHTML = hist.slice().reverse().map((h, i) => {
-                const p = (Number(h.pA) || 0) + (Number(h.pJ) || 0);
-                return `
-                  <div class="hist-card" onclick="verDetalhesHistorico(${i})">
-                    <div class="hist-date">📅 ${h.data || '-'}</div>
-                    <div class="hist-stats">
-                      <span class="hist-badge p">✓ ${p} presentes</span>
-                      ${h.vExtQtd > 0 ? `<span class="hist-badge v">👋 ${h.vExtQtd} visitantes</span>` : ''}
-                    </div>
-                    <div class="hist-prof">Prof: ${h.pA || '-'} / ${h.pJ || '-'}</div>
-                    <div class="hist-responsavel">👤 ${h.responsavel || 'Sistema'}</div>
-                  </div>`;
-            }).join('');
-        }
-    }
-
-    // ── CAIXA LOCAL ───────────────────────────────────────────────────────────
-    function obterCaixaLocal() { return JSON.parse(localStorage.getItem('ebd_caixa_local') || '{"saldo":0,"historico":[]}'); }
-    function salvarCaixaLocal(d) { localStorage.setItem('ebd_caixa_local', JSON.stringify(d)); }
-
-    async function fetchCaixa() {
-        const c = document.getElementById('caixa-historico');
-        const d = obterCaixaLocal();
-        document.getElementById('caixa-saldo').textContent = `R$ ${Number(d.saldo).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-        if (!d.historico.length) { c.innerHTML = '<div class="empty-state"><div class="icon">💰</div><p>Sem registros.</p></div>'; return; }
-        c.innerHTML = d.historico.map(h => `
-            <div class="mov-card">
-                <div class="mov-desc">
-                    <div class="mov-desc-titulo">${h.desc}</div>
-                    <div class="mov-desc-data">${h.data}</div>
-                </div>
-                <div class="mov-valor ${h.tipo === 'SAIDA' ? 'saida' : ''}">
-                    ${h.tipo === 'ENTRADA' ? '+' : '-'} R$ ${Number(h.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                </div>
-                <button class="mov-remover" title="Remover" onclick="removerMovCaixa('${h.id}')">✕</button>
-            </div>`).join('');
-    }
-
-    async function enviarFinanceiro(tipo) {
-        const dInput = document.getElementById('fin-desc'), vInput = document.getElementById('fin-valor');
-        const desc = dInput.value.trim(), valor = parseFloat(vInput.value);
-        if (!desc || isNaN(valor) || valor <= 0) return alert("Preencha corretamente.");
-        const data = obterCaixaLocal();
-        if (tipo === "SAIDA" && valor > data.saldo) {
-            return alert("Saldo insuficiente! O caixa tem R$ " + Number(data.saldo).toLocaleString('pt-BR', {minimumFractionDigits: 2}) + ".");
-        }
-        const novoSaldo = tipo === "ENTRADA" ? data.saldo + valor : data.saldo - valor;
-        const id = Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-        data.historico.unshift({ id, data: new Date().toLocaleDateString('pt-BR'), tipo, desc, valor, saldo: novoSaldo });
-        data.saldo = novoSaldo;
-        salvarCaixaLocal(data);
-        dInput.value = ''; vInput.value = ''; fecharModal();
-        showToast("✓ Salvo localmente!");
-        fetchCaixa();
-    }
-
-    function removerMovCaixa(id) {
-        const data = obterCaixaLocal();
-        const m = data.historico.find(x => x.id === id);
-        if (!m) return;
-        if (!confirm("Remover esta movimentação? O saldo será ajustado.")) return;
-        // recalcula saldo base retirando este lançamento
-        const ajuste = m.tipo === "ENTRADA" ? -m.valor : +m.valor;
-        data.saldo = (Number(data.saldo) + ajuste);
-        data.historico = data.historico.filter(x => x.id !== id);
-        salvarCaixaLocal(data);
-        showToast("✓ Movimentação removida");
-        fetchCaixa();
-    }
-
-    // ── MODALS & ADMIN ────────────────────────────────────────────────────────
-    function fecharModal() {
-        document.querySelectorAll('.modal-box').forEach(m => m.classList.remove('active'));
-        document.getElementById('modalOverlay').classList.remove('active');
-        document.body.classList.remove('modal-open');
-    }
-
-    function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) fecharModal(); }
-
-    function confirmarAcao(t, i = null) {
-        acaoPendente = t; indexPendente = i;
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('modalConfirm').classList.add('active');
-        document.getElementById('envioExtras').style.display = t === 'ENVIAR_RELATORIO' ? 'block' : 'none';
-        
-        const config = {
-            'ENVIAR_RELATORIO': { icon: "🚀", title: "Finalizar Chamada", desc: "Os dados serão enviados para a nuvem." },
-            'LIMPAR_CHAMADA': { icon: "🧹", title: "Limpar Tudo?", desc: "Isso apagará as presenças de hoje." },
-            'EXCLUIR_MEMBRO': { icon: "🗑️", title: "Excluir?", desc: "Ação irreversível." }
-        };
-        
-        const c = config[t];
-        document.getElementById('confirmIcon').textContent = c.icon;
-        document.getElementById('confirmTitle').textContent = c.title;
-        document.getElementById('confirmDesc').textContent = c.desc;
-        document.getElementById('btnConfirmarFinal').onclick = executarAcao;
-    }
-
-    async function executarAcao() {
-        if (acaoPendente === 'ENVIAR_RELATORIO') {
-            const btn = document.getElementById('btnConfirmarFinal');
-            btn.textContent = "ENVIANDO..."; btn.disabled = true;
-            const payload = {
-                aula: { data: dataAula, pA: profA, pJ: profJ, bib: document.getElementById('bib').value, rev: document.getElementById('rev').value, vExtQtd: document.getElementById('qtdVisitantes').value, vExtNomes: document.getElementById('nomesVisitantes').value },
-                responsavel: usuarioAtual,
-                frequencia: db.map(m => ({ nome: m.nome, status: presencas[m.nome]?.status || 'A', perguntas: presencas[m.nome]?.perguntas || 0, ofertou: presencas[m.nome]?.ofertou || false }))
-            };
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                // salva também localmente (fallback)
-                try {
-                    const hist = obterHistoricoLocal();
-                    hist.push({ data: payload.aula.data, pA: payload.aula.pA, pJ: payload.aula.pJ, vExtQtd: payload.aula.vExtQtd, responsavel: payload.responsavel, frequencia: payload.frequencia });
-                    salvarHistoricoLocal(hist);
-                } catch (e2) { /* ignora */ }
-                fecharModal(); haptic('success'); showToast('✓ ENVIADO!');
-                setTimeout(() => { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }, 2000);
-            } catch (e) { alert("Erro envio."); btn.disabled = false; btn.textContent = "CONFIRMAR"; }
-        }
-        if (acaoPendente === 'LIMPAR_CHAMADA') { localStorage.removeItem('ebd_hoje_v36'); location.reload(); }
-        if (acaoPendente === 'EXCLUIR_MEMBRO') { db.splice(indexPendente, 1); save(); fecharModal(); abrirAdmin(); render(); }
-    }
-
-    function abrirSeletor(tipo) {
-        document.getElementById('modalPicker').classList.add('active');
-        const c = document.getElementById('pickerOptions');
-        c.innerHTML = '';
-        ["PASTOR JOSÉ", "ADONIAS", "JOSELMA", "OUTRO"].forEach(opt => {
-            const div = document.createElement('div');
-            div.className = 'option-item'; div.textContent = opt;
-            div.onclick = () => {
-                if (tipo === 'profA') { profA = opt; document.querySelector('#btnProfA span').textContent = opt; }
-                else { profJ = opt; document.querySelector('#btnProfJ span').textContent = opt; }
-                document.getElementById('modalPicker').classList.remove('active');
-            };
-            c.appendChild(div);
-        });
-    }
-
-    function abrirAdmin() { document.getElementById('modalOverlay').classList.add('active'); document.getElementById('modalAdmin').classList.add('active'); listarAdmin(); }
-    function listarAdmin() {
-        document.getElementById('listaAdminItems').innerHTML = db.map((m, i) => `
-          <div class="admin-card-item">
-            <div style="max-width:60%">
-                <div style="font-weight:600; font-size:0.9rem">${m.nome}</div>
-                <div style="font-size:0.75rem; color:var(--text-muted)">${m.apelido}</div>
-            </div>
-            <div class="admin-actions">
-              <button class="admin-btn" style="background:var(--warning)" onclick="editarMembro(${i})">✏️</button>
-              <button class="admin-btn" style="background:${m.oculto?'var(--text-muted)':'var(--success)'}" onclick="toggleOculto(${i})">${m.oculto ? '🙈' : '👁️'}</button>
-              <button class="admin-btn" style="background:var(--danger)" onclick="confirmarAcao('EXCLUIR_MEMBRO',${i})">🗑️</button>
-            </div>
-          </div>`).join('');
-    }
-    function editarMembro(i) { document.getElementById('editIndex').value = i; document.getElementById('membroNome').value = db[i].nome; document.getElementById('membroApelido').value = db[i].apelido; document.getElementById('btnSalvarMembro').textContent = "ATUALIZAR"; document.getElementById('btnCancelaEdit').style.display = 'block'; }
-    function salvarMembro() { const i = parseInt(document.getElementById('editIndex').value); const nome = document.getElementById('membroNome').value.toUpperCase().trim(); const apelido = document.getElementById('membroApelido').value.trim() || "Membro"; if (!nome) return; if (i === -1) db.push({ nome, apelido, oculto: false }); else { db[i].nome = nome; db[i].apelido = apelido; } save(); limparFormAdmin(); listarAdmin(); render(); }
-    function toggleOculto(i) { db[i].oculto = !db[i].oculto; save(); listarAdmin(); render(); }
-    function limparFormAdmin() { document.getElementById('editIndex').value = "-1"; document.getElementById('membroNome').value = ""; document.getElementById('membroApelido').value = ""; document.getElementById('btnSalvarMembro').textContent = "SALVAR"; document.getElementById('btnCancelaEdit').style.display = 'none'; }
-
-    function switchTab(t) {
-            AppRouter.switch(t);
-        }
-
-    function save() { localStorage.setItem('ebd_hoje_v36', JSON.stringify(presencas)); localStorage.setItem('ebd_db_v36', JSON.stringify(db)); }
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.setAttribute('role', 'status');
-        t.setAttribute('aria-live', 'polite');
-        t.setAttribute('aria-atomic', 'true');
-        t.classList.add('active');
-        setTimeout(() => t.classList.remove('active'), 2500);
-    }
-    function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('ebd_theme', t); }
-
-    function verDetalhesHistorico(i) {
-        document.getElementById('histDetalhesTitulo').textContent = `Detalhes da Chamada`;
-        document.getElementById('histDetalhesCorpo').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Detalhes disponíveis na planilha oficial.</div>';
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('modalHistDetalhes').classList.add('active');
-        document.body.classList.add('modal-open');
-    }
-
-    function abrirFinanceiro(tipo) {
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById('modalFin').classList.add('active');
-        document.body.classList.add('modal-open');
-        document.getElementById('fin-titulo').textContent = tipo === 'ENTRADA' ? '➕ Adicionar Dinheiro' : '➖ Retirar Dinheiro';
-        document.getElementById('btnConfirmarFin').style.background = tipo === 'ENTRADA' ? 'var(--success)' : 'var(--danger)';
-        document.getElementById('btnConfirmarFin').onclick = () => enviarFinanceiro(tipo);
-    }
-
-    window.onload = () => {
-            inicializarUsuario();
-            document.documentElement.setAttribute('data-theme', localStorage.getItem('ebd_theme') || 'light');
-            document.getElementById('data-label').textContent = dataAula;
-            window.miniChart = new Chart(document.getElementById('miniChart'), {
-                type: 'doughnut',
-                data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#34C759', '#FF3B30', '#FF9500'], borderWidth: 0 }] },
-                options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-            });
-            render();
-
-            // Inicializa módulos novos
-            Jornada.init && Jornada.init();
-            Memorias.init && Memorias.init();
-            Notificacoes.init && Notificacoes.init();
-
-            // Registra o Service Worker para PWA offline
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('✓ SW registrado'))
-                    .catch((e) => console.warn('SW: falha no registro', e));
-            }
-        };
-    </script>
+    <!-- BOOTSTRAP MODULAR (ES MODULE) -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,465 @@
+/* ==========================================================================
+   EBD NOVA SUÍÇA — LAYOUT CSS: NEO-SACRED GLASS
+   Header, Bottom Nav, Views Container, Modais, Acessibilidade & Safe Areas
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px) + 24px);
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+}
+
+/* Fundo Sagrado Decorativo (Radial Glow + Ambient Glass) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.20), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(212, 175, 55, 0.18), transparent 42%),
+    radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.12), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.14), transparent 45%),
+    url('../background_ebd_1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--bg-deep);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.10), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(184, 134, 11, 0.12), transparent 40%),
+    radial-gradient(circle at 80% 85%, rgba(5, 150, 105, 0.08), transparent 40%),
+    url('../background_ebd_1.jpg');
+  opacity: 0.5;
+}
+
+/* Skip Link para Acessibilidade */
+.skip-link {
+  position: fixed;
+  top: -60px;
+  left: 12px;
+  background: var(--gold-primary);
+  color: #000000;
+  padding: 10px 16px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  z-index: 10000;
+  text-decoration: none;
+  transition: top 0.2s ease;
+  box-shadow: var(--shadow-gold);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* Contêiner Geral */
+.app-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--surface-glass);
+  backdrop-filter: var(--blur-header);
+  -webkit-backdrop-filter: var(--blur-header);
+  border-bottom: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-sm);
+  padding: env(safe-area-inset-top, 8px) 16px 12px 16px;
+  transition: background 0.3s ease;
+}
+
+.header-row {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(37, 99, 235, 0.2));
+  border: 1px solid var(--border-glass-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--gold-glow);
+}
+
+.header-icon-wrap canvas {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header-church-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-church-name .tag-gold {
+  color: var(--gold-primary);
+  font-size: 0.95em;
+}
+
+.header-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-glass-gold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.header-date-badge:hover {
+  background: rgba(212, 175, 55, 0.25);
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  border-color: var(--border-glass-hover);
+  background: var(--bg-card-hover);
+}
+
+.icon-btn:active {
+  transform: scale(0.96);
+}
+
+.user-badge {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  background: var(--blue-dim);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: var(--blue-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+
+.user-badge:hover {
+  background: rgba(37, 99, 235, 0.25);
+}
+
+/* ==========================================================================
+   VIEWS CONTAINER & TABS
+   ========================================================================== */
+.views-container {
+  margin-top: 16px;
+}
+
+.tab-content {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.tab-content.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   BOTTOM NAVIGATION
+   ========================================================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface-glass);
+  backdrop-filter: var(--blur-header);
+  -webkit-backdrop-filter: var(--blur-header);
+  border-top: 1px solid var(--border-glass);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 12px)) 8px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 950;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.nav-item {
+  flex: 1;
+  max-width: 90px;
+  min-height: var(--touch-target);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border-radius: var(--radius-md);
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-item i, .nav-item .nav-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  color: var(--gold-primary);
+  background: var(--gold-dim);
+}
+
+.nav-item.active i, .nav-item.active .nav-icon {
+  transform: scale(1.15);
+}
+
+/* FAB ADMIN (Floating Action Button) */
+.fab-admin {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 12px) + 16px);
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--gold-primary), #B8860B);
+  color: #0A0F1D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  box-shadow: var(--shadow-gold), var(--shadow-md);
+  border: none;
+  cursor: pointer;
+  z-index: 890;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-admin:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+}
+
+.fab-admin:active {
+  transform: scale(0.94);
+}
+
+/* ==========================================================================
+   MODAIS & OVERLAYS
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-content {
+  background: var(--surface-modal);
+  width: 100%;
+  max-width: 540px;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 12px)) 20px;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-glass-gold);
+  border-bottom: none;
+  max-height: 88vh;
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 600px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+  .modal-content {
+    border-radius: 24px;
+    border-bottom: 1px solid var(--border-glass-gold);
+    transform: scale(0.96);
+  }
+  .modal-overlay.active .modal-content {
+    transform: scale(1);
+  }
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.modal-box {
+  display: none;
+}
+
+.modal-box.active {
+  display: block;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   ACIBILIDADE GERAL
+   ========================================================================== */
+*:focus-visible {
+  outline: 2px solid var(--gold-primary) !important;
+  outline-offset: 2px !important;
+}
+
+@media print {
+  .no-print, .bottom-nav, .fab-admin, .app-header {
+    display: none !important;
+  }
+}
