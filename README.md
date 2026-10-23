@@ -154,4 +154,4 @@ git push origin main
 
 ## Autor
 
-Victor Hugo — Calcário Diamante Ltda.
+Victor Hugo.
